@@ -7,9 +7,11 @@ var logger = require("morgan");
 const conf = require("./etc/config");
 var mysql = require("./libs/mysql-middle")(conf);
 var config = require("./libs/config-middle")(conf);
+var incomes = require("./libs/incomes-log-middle")();
 
 var indexRouter = require("./routes/index");
 var inRouter = require("./routes/in");
+var logRouter = require("./routes/log");
 
 var app = express();
 
@@ -23,11 +25,30 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use(function (req, res, next) {
+  // функция необходима для сбора текстовых данных в переменную text
+  // иначе мы данные через функционал, предоставляемый модулем express получить не можем,
+  // express умеет парсить только данные с форм, либо бинарные данные при загрузке файлов,
+  // а для получения обычных текстовых данных у экспресса нет механизмов
+  if (req.is("text/*")) {
+    req.text = "";
+    req.setEncoding("utf8");
+    req.on("data", function (chunk) {
+      req.text += chunk;
+    });
+    req.on("end", next);
+  } else {
+    next();
+  }
+});
+
 app.use(config);
 app.use(mysql);
+app.use(incomes);
 
 app.use("/", indexRouter);
 app.use("/in", inRouter);
+app.use("/log", logRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
