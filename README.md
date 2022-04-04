@@ -4,6 +4,7 @@ back-end для связи с АПВ в рамках проекта "Ключ з
 ## yum -y install epel-release
 ## yum -y update
 ## yum -y install docker
+## yum -y install net-tools
 ## systemctl enable docker
 ## systemctl start docker
 ## yum -y install git
