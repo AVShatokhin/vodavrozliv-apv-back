@@ -16,3 +16,5 @@ back-end для связи с АПВ в рамках проекта "Ключ з
 ## nvm install 14.16.1
 ## cd /home/webmaster/vodavrozliv-apv-back
 ## npm install
+## cd /home/webmaster/vodavrozliv-apv-back/dockers
+## ./nodejs.linux
