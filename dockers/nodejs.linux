@@ -2,4 +2,4 @@ docker stop apv-back
 docker rm apv-back
 docker run -it -d --restart=always --name apv-back \
                                            -v /home/webmaster/vodavrozliv-apv-back:/home/webmaster/vodavrozliv-apv-back \
-                                           -w /home/webmaster/vodavrozliv-apv-back/ -p 80:3000 -p 3001:3001 node:14.15.3 node bin/www
+                                           -w /home/webmaster/vodavrozliv-apv-back/ -p 3000:3000 node:14.16.1 node bin/www
