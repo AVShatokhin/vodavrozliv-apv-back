@@ -22,3 +22,13 @@ back-end для связи с АПВ в рамках проекта "Ключ з
 * firewall-cmd --reload
 * cd /home/webmaster/vodavrozliv-apv-back/dockers
 * ./nodejs.linux
+
+# Установка утилит СУБД, запуск и инициализация СУБД
+
+* yum install -y mysql
+* cd /home/webmaster/vodavrozliv-apv-back/dockers
+* vi ./my.linux - **меняем пароль**
+* ./my.linux
+* cat /home/webmaster/vodavrozliv-apv-back/sql/apv.sql | mysql -h 127.0.0.1 -p3306 -uroot -p[PASSWORD]
+
+ 
