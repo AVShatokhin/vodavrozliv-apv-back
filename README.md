@@ -34,4 +34,7 @@ back-end для связи с АПВ в рамках проекта "Ключ з
 * cat /home/webmaster/vodavrozliv/sql/pattern_tables.sql | mysql -h 127.0.0.1 -p3306 -u[**USER**] -p[**PASSWORD**] -A apv
 * cd /home/webmaster/vodavrozliv/
 * npm install
+* **по отдельной инструкции собираем приложение и копируем в /home/webmaster/vodavrozliv/public/**
+* vi /home/webmaster/vodavrozliv/config.js - **меняем пароль достпупа к СУБД**
+* /home/webmaster/vodavrozliv/docker/nodejs.linux
 * 
