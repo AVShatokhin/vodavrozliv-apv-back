@@ -38,5 +38,6 @@ back-end для связи с АПВ в рамках проекта "Ключ з
 * vi /home/webmaster/vodavrozliv/sql/grant.sql - **изменяем данные для доступа к СУБД**
 * /home/webmaster/vodavrozliv/sql/grant.sql | mysql -h 127.0.0.1 -p3306 -u[**USER**] -p[**PASSWORD**]
 * vi /home/webmaster/vodavrozliv/config.js - **вносим данные для доступа к СУБД**
-* /home/webmaster/vodavrozliv/docker/nodejs.linux
+* cd /home/webmaster/vodavrozliv/docker/
+* ./nodejs.linux
 
