@@ -31,15 +31,13 @@ back-end для связи с АПВ в рамках проекта "Ключ з
 * ./my.linux
 * cat /home/webmaster/vodavrozliv-apv-back/sql/apv.sql | mysql -h 127.0.0.1 -p3306 -u[**USER**] -p[**PASSWORD**]
 
-# Настройка и запуск основнго приложения
+# Настройка и запуск основного приложения
 
 * git clone https://github.com/AVShatokhin/node-pattern.git /home/webmaster/vodavrozliv/
 * cat /home/webmaster/vodavrozliv/sql/pattern_tables.sql | mysql -h 127.0.0.1 -p3306 -u[**USER**] -p[**PASSWORD**] -A apv
 * cd /home/webmaster/vodavrozliv/
 * npm install
-
 * **по отдельной инструкции собираем приложение и копируем в /home/webmaster/vodavrozliv/public/**
-
 * vi /home/webmaster/vodavrozliv/sql/grant.sql - **изменяем данные для доступа к СУБД**
 * /home/webmaster/vodavrozliv/sql/grant.sql | mysql -h 127.0.0.1 -p3306 -u[**USER**] -p[**PASSWORD**]
 * vi /home/webmaster/vodavrozliv/config.js - **вносим данные для доступа к СУБД**
