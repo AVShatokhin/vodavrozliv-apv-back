@@ -30,5 +30,5 @@ back-end для связи с АПВ в рамках проекта "Ключ з
 * vi ./my.linux - **меняем пароль**
 * ./my.linux
 * cat /home/webmaster/vodavrozliv-apv-back/sql/apv.sql | mysql -h 127.0.0.1 -p3306 -uroot -p[PASSWORD]
-
+* git clone https://github.com/AVShatokhin/node-pattern.git /home/webmaster/vodavrozliv/
  
