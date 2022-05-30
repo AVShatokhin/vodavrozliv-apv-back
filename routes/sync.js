@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 var ERRORS = require("../libs/ERRORS");
 
-router.post("/sync", function (req, res, next) {
+router.post("/sync", async function (req, res, next) {
   if (req?.text == undefined) {
     res.error(ERRORS.NO_DATA, "sync");
     return;
@@ -18,6 +18,12 @@ router.post("/sync", function (req, res, next) {
   if (req?.configControl?.apv?.[result?.data?.sn] == undefined) {
     res.error(ERRORS.UNKNOWN_SN, "sync_sn", req.text);
     return;
+  }
+
+  let isNewData = await req.isKVSUpdated(result?.data?.sn, result?.data);
+
+  if (isNewData) {
+    appendMain(req, result?.data);
   }
 
   res.ok();
@@ -51,10 +57,10 @@ let syncParser = (income) => {
   }
 
   if (baseArray[1][0] != "S") {
-    result.data["S"] = false;
+    result.data["FLAG_start"] = false;
     result.data["version"] = baseArray[1];
   } else {
-    result.data["S"] = true;
+    result.data["FLAG_start"] = true;
     result.data["version"] = baseArray[1].substr(1, baseArray[1].length);
   }
 
@@ -64,17 +70,21 @@ let syncParser = (income) => {
   let __k = baseArray[4].split(":")[1];
 
   if (__k == "off") {
-    result.data["k"] = "off";
+    result.data["k"] = 0;
+    result.data["FLAG_k_off"] = true;
   } else {
     result.data["k"] = __k;
+    result.data["FLAG_k_off"] = false;
   }
 
   let __r = baseArray[5].split(":")[1];
 
   if (__r == "off") {
-    result.data["r"] = "off";
+    result.data["r"] = 0;
+    result.data["FLAG_r_off"] = true;
   } else {
     result.data["r"] = __r;
+    result.data["FLAG_r_off"] = false;
   }
 
   let __m = baseArray[6].split(":")[1];
@@ -85,7 +95,7 @@ let syncParser = (income) => {
     result.data["m5"] = 0;
 
     result.data["m10"] = 0;
-    result.data["m"] = "off";
+    result.data["FLAG_m_off"] = true;
   } else {
     let __mArray = __m.split(",");
     result.data["m1"] = __mArray[0];
@@ -93,13 +103,16 @@ let syncParser = (income) => {
     result.data["m5"] = __mArray[2];
     result.data["m10"] = __mArray[3];
     result.data["m"] = __mArray[4];
+    result.data["FLAG_m_off"] = false;
   }
 
   let __c = baseArray[7].split(":")[1];
   if (__c == "off") {
-    result.data["c"] = "off";
+    result.data["c"] = 0;
+    result.data["FLAG_c_off"] = true;
   } else {
     result.data["c"] = __c;
+    result.data["FLAG_c_off"] = false;
   }
 
   let __ErrArray = baseArray[8].split(":")[1].split(",");
@@ -110,6 +123,36 @@ let syncParser = (income) => {
 
   result.error = ERRORS.OK;
   return result;
+};
+
+let appendMain = async (req, data) => {
+  await req.mysqlConnection
+    .asyncQuery(req.mysqlConnection.SQL_BASE.appendMain, [
+      data.sn,
+      data.FLAG_start,
+      data.w,
+      data.k,
+      data.r,
+      data.m,
+      data.m1,
+      data.m2,
+      data.m5,
+      data.m10,
+      data.c,
+      data.errDevice,
+      data.errCode,
+      data.messCode,
+      data.FLAG_k_off,
+      data.FLAG_r_off,
+      data.FLAG_m_off,
+      data.FLAG_c_off,
+    ])
+    .then(
+      (result) => {},
+      (err) => {
+        console.log(req.timeLogFormated + ": appendMain: " + err);
+      }
+    );
 };
 
 module.exports = router;

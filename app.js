@@ -12,6 +12,7 @@ var collector = require("./libs/collectText-middle");
 var ts = require("./libs/ts-middle");
 var controlConfig = require("./libs/configControl-middle")(conf);
 var render = require("./libs/renders-apv-middle")();
+var kvs = require("./libs/kvs-apv-storage-middle")();
 
 var indexRouter = require("./routes/index");
 var syncRouter = require("./routes/sync");
@@ -33,6 +34,7 @@ app.use(ts);
 app.use(collector);
 app.use(config);
 app.use(mysql);
+app.use(kvs);
 app.use(controlConfig);
 app.use(render);
 app.use(incomes); // удалить
