@@ -1,5 +1,5 @@
 module.exports = (config) => {
-  let config_TTLms = config.configTTL * 1000;
+  let config_TTLms = config.configTTL * 1000 || 120000;
   let lastTS = 0;
   let configControl = {};
 
