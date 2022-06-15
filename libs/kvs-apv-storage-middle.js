@@ -12,7 +12,11 @@ module.exports = () => {
           .asyncQuery(req.mysqlConnection.SQL_BASE.kvsGet, [sn])
           .then(
             (result) => {
-              store[sn] = JSON.parse(result[0].value);
+              if (result.length == 0) {
+                store[sn] = {};
+              } else {
+                store[sn] = JSON.parse(result[0].value);
+              }
             },
             (err) => {
               store[sn] = {};
