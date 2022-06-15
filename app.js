@@ -3,17 +3,23 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+var app = express();
 
 const conf = require("./etc/config");
 var mysql = require("./libs/mysql-middle")(conf);
 var config = require("./libs/config-middle")(conf);
-var incomes = require("./libs/incomes-log-middle")();
+var collector = require("./libs/collectText-middle");
+var ts = require("./libs/ts-middle");
+var controlConfig = require("./libs/configControl-middle")(conf);
+var render = require("./libs/renders-apv-middle")();
+var kvs = require("./libs/kvs-apv-storage-middle")();
 
 var indexRouter = require("./routes/index");
-var inRouter = require("./routes/in");
-var logRouter = require("./routes/log");
+var syncRouter = require("./routes/sync");
 
-var app = express();
+var inRouter = require("./routes/in"); // удалить
+var logRouter = require("./routes/log"); // удалить
+var incomes = require("./libs/incomes-log-middle")(); // удалить
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -23,32 +29,21 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
 
-app.use(function (req, res, next) {
-  // функция необходима для сбора текстовых данных в переменную text
-  // иначе мы данные через функционал, предоставляемый модулем express получить не можем,
-  // express умеет парсить только данные с форм, либо бинарные данные при загрузке файлов,
-  // а для получения обычных текстовых данных у экспресса нет механизмов
-  if (req.is("text/*")) {
-    req.text = "";
-    req.setEncoding("utf8");
-    req.on("data", function (chunk) {
-      req.text += chunk;
-    });
-    req.on("end", next);
-  } else {
-    next();
-  }
-});
-
+app.use(ts);
+app.use(collector);
 app.use(config);
 app.use(mysql);
-app.use(incomes);
+app.use(kvs);
+app.use(controlConfig);
+app.use(render);
+app.use(incomes); // удалить
 
 app.use("/", indexRouter);
-app.use("/in", inRouter);
-app.use("/log", logRouter);
+app.use(syncRouter);
+
+app.use("/in", inRouter); // удалить
+app.use("/log", logRouter); // удалить
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

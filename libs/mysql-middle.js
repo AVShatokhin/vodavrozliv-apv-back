@@ -9,8 +9,21 @@ module.exports = (config) => {
   });
 
   mysqlConnection.connect((err) => {
+    let timeLogFormated = () => {
+      let n = (i) => {
+        s = new String(i);
+        if (s.length == 1) return `0${s}`;
+        else return s;
+      };
+
+      let d = new Date();
+      return `${n(d.getDate())}.${n(d.getMonth())}.${d.getFullYear()} ${n(
+        d.getHours()
+      )}.${n(d.getMinutes())}.${n(d.getSeconds())}`;
+    };
+
     if (err) {
-      console.log(err);
+      console.log(timeLogFormated() + ":" + err);
       throw err;
     }
 
@@ -30,7 +43,7 @@ module.exports = (config) => {
             });
           });
         };
-        console.log("mysql connected");
+        console.log(timeLogFormated() + ": mysql connected");
       }
     });
   });
