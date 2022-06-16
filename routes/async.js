@@ -84,7 +84,7 @@ let asyncParser = (income) => {
 
 let checkOp = (req, result) => {
   result.inkas_data["op_extended"] = {};
-  result.inkas_data["FLAG_op_failed"] = false;
+  result.inkas_data["op_state"] = false;
 };
 
 let appendInkas = async (req, data) => {
@@ -97,9 +97,10 @@ let appendInkas = async (req, data) => {
       data.inkas,
       data.kup,
       data.box,
+      data.rd,
       data.op,
       JSON.stringify(data.op_extended),
-      data.FLAG_op_failed,
+      data.op_state,
     ])
     .then(
       (result) => {},

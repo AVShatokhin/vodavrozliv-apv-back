@@ -74,6 +74,8 @@ let syncParser = (income) => {
     result.apv_data["version"] = baseArray[1].substr(1, baseArray[1].length);
   }
 
+  result.main_data["version"] = result.apv_data["version"]; // версия у нас попадает независимо во все таблицы, как это ни странно
+
   result.main_data["sn"] = baseArray[2];
   result.apv_data["sn"] = baseArray[2];
 
@@ -147,6 +149,7 @@ let appendMain = async (req, data) => {
     .asyncQuery(req.mysqlConnection.SQL_BASE.appendMain, [
       data.sn,
       data.FLAG_start,
+      data.version,
       data.w,
       data.k,
       data.r,
