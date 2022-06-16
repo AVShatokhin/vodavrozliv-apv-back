@@ -16,6 +16,7 @@ var kvs = require("./libs/kvs-apv-storage-middle")();
 
 var indexRouter = require("./routes/index");
 var syncRouter = require("./routes/sync");
+var asyncRouter = require("./routes/async");
 
 var inRouter = require("./routes/in"); // удалить
 var logRouter = require("./routes/log"); // удалить
@@ -41,6 +42,7 @@ app.use(incomes); // удалить
 
 app.use("/", indexRouter);
 app.use(syncRouter);
+app.use(asyncRouter);
 
 app.use("/in", inRouter); // удалить
 app.use("/log", logRouter); // удалить

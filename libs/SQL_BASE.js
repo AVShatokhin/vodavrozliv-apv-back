@@ -5,6 +5,8 @@ module.exports = (config) => {
     kvsGet: `SELECT value FROM kvs WHERE link=?;`,
     appendMain: `INSERT INTO main (sn, FLAG_start, w, k, r, m, m1, m2, m5, m10, c, errorDevice, errorCode, messCode, FLAG_k_off, FLAG_r_off, FLAG_m_off, FLAG_c_off) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     updateApv: `UPDATE apv SET version=?, cost=?, phone=?, linkState=?, oper=?, lts=now() WHERE sn=?`,
+    appendInkas: `INSERT INTO inkas (sn, inkas_number, date, version, inkas, kup, box, op, op_extended, FLAG_op_failed) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+    //appendInkas: `INSERT INTO inkas (sn, inkas_number, date, version, inkas, kup, box, op, op_extended, FLAG_op_failed) VALUES (?,?,?,?,?,?,?,?,?, true)`,
     // Login: `SELECT uid, email, roles, blocked, confirmed, extended from ${config.db_prefix}_users where email=? and pass_hash=md5(?)`,
     // Register: `INSERT into ${config.db_prefix}_users set roles='["${config.default_user_role}"]', email=?, pass_hash=md5(?), extended=?`,
     // Confirm: `UPDATE ${config.db_prefix}_users, ${config.db_prefix}_tokens set confirmed=true where ${config.db_prefix}_users.uid=${config.db_prefix}_tokens.uid and token=?`,
