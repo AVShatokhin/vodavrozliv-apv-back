@@ -62,7 +62,7 @@ let syncParser = (income) => {
   // 13 - o - оператор o:Tele2
   // 14 - end
 
-  if (baseArray.length != 15) {
+  if (baseArray.length != 16) {
     return result;
   }
 
@@ -107,15 +107,46 @@ let syncParser = (income) => {
     result.main_data["m1"] = 0;
     result.main_data["m2"] = 0;
     result.main_data["m5"] = 0;
-
     result.main_data["m10"] = 0;
+    result.main_data["FLAG_error_m1"] = false;
+    result.main_data["FLAG_error_m2"] = false;
+    result.main_data["FLAG_error_m5"] = false;
+    result.main_data["FLAG_error_m10"] = false;
     result.main_data["FLAG_m_off"] = true;
   } else {
     let __mArray = __m.split(",");
-    result.main_data["m1"] = __mArray[0];
-    result.main_data["m2"] = __mArray[1];
-    result.main_data["m5"] = __mArray[2];
-    result.main_data["m10"] = __mArray[3];
+
+    if (__mArray[0] == "Er") {
+      result.main_data["m1"] = 0;
+      result.main_data["FLAG_error_m1"] = true;
+    } else {
+      result.main_data["m1"] = __mArray[0];
+      result.main_data["FLAG_error_m1"] = false;
+    }
+
+    if (__mArray[1] == "Er") {
+      result.main_data["m2"] = 0;
+      result.main_data["FLAG_error_m2"] = true;
+    } else {
+      result.main_data["m2"] = __mArray[1];
+      result.main_data["FLAG_error_m2"] = false;
+    }
+
+    if (__mArray[2] == "Er") {
+      result.main_data["m5"] = 0;
+      result.main_data["FLAG_error_m5"] = true;
+    } else {
+      result.main_data["m5"] = __mArray[2];
+      result.main_data["FLAG_error_m5"] = false;
+    }
+
+    if (__mArray[3] == "Er") {
+      result.main_data["m10"] = 0;
+      result.main_data["FLAG_error_m10"] = true;
+    } else {
+      result.main_data["m10"] = __mArray[3];
+      result.main_data["FLAG_error_m10"] = false;
+    }
     result.main_data["m"] = __mArray[4];
     result.main_data["FLAG_m_off"] = false;
   }
@@ -140,6 +171,13 @@ let syncParser = (income) => {
   result.apv_data["linkState"] = baseArray[12].split(":")[1];
   result.apv_data["oper"] = baseArray[13].split(":")[1];
 
+  let __v = baseArray[14].split(":")[1].split(",");
+
+  result.main_data["v1"] = __v[0];
+  result.main_data["v2"] = __v[1];
+  result.main_data["v3"] = __v[2];
+  result.main_data["v4"] = __v[3];
+
   result.error = ERRORS.OK;
   return result;
 };
@@ -158,7 +196,15 @@ let appendMain = async (req, data) => {
       data.m2,
       data.m5,
       data.m10,
+      data.FLAG_error_m1,
+      data.FLAG_error_m2,
+      data.FLAG_error_m5,
+      data.FLAG_error_m10,
       data.c,
+      data.v1,
+      data.v2,
+      data.v3,
+      data.v4,
       data.errDevice,
       data.errCode,
       data.messCode,

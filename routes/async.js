@@ -20,17 +20,7 @@ router.post("/async", async function (req, res, next) {
     return;
   }
 
-  // let isNewData = await req.isKVSUpdated(
-  //   result?.main_data?.sn,
-  //   result?.main_data
-  // );
-
-  // if (isNewData) {
-  //   appendMain(req, result?.main_data);
-  // }
-
-  // updateApv(req, result?.apv_data);
-
+  checkRekvs(req, result);
   checkOp(req, result);
   appendInkas(req, result.inkas_data);
 
@@ -73,8 +63,21 @@ let asyncParser = (income) => {
   result.inkas_data["box"] = baseArray[6].split(":")[1];
 
   let __date_hash = baseArray[7].split(":")[1];
-  result.inkas_data["date"] = __date_hash.substr(0, 9);
   result.inkas_data["inkas_number"] = __date_hash.substr(9, 4);
+
+  let __date = __date_hash.substr(0, 9);
+
+  let __year = new Date().getFullYear() + "";
+  __year = __year.substr(0, 3) + __date.substr(0, 1);
+
+  let __month = __date.substr(1, 2);
+  let __day = __date.substr(3, 2);
+  let __hour = __date.substr(5, 2);
+  let __min = __date.substr(7, 2);
+
+  result.inkas_data[
+    "date"
+  ] = `${__year}-${__month}-${__day} ${__hour}:${__min}:00`;
 
   result.inkas_data["op"] = baseArray[8].split(":")[1];
 
@@ -82,9 +85,21 @@ let asyncParser = (income) => {
   return result;
 };
 
+let checkRekvs = (req, result) => {
+  result.inkas_data["address"] =
+    req.configControl.apv[result.inkas_data.sn].address || "";
+
+  let krug_id = req.configControl.apv[result.inkas_data.sn].activeKrug;
+
+  result.inkas_data["krug_name"] =
+    req.configControl.krug?.[krug_id]?.title || "-";
+};
+
 let checkOp = (req, result) => {
+  //let brig_id = 0;
+
   result.inkas_data["op_extended"] = {};
-  result.inkas_data["op_state"] = false;
+  result.inkas_data["op_state"] = 0;
 };
 
 let appendInkas = async (req, data) => {
@@ -93,6 +108,8 @@ let appendInkas = async (req, data) => {
       data.sn,
       data.inkas_number,
       data.date,
+      data.krug_name,
+      data.address,
       data.version,
       data.inkas,
       data.kup,
@@ -109,23 +126,5 @@ let appendInkas = async (req, data) => {
       }
     );
 };
-
-// let updateApv = async (req, data) => {
-//   await req.mysqlConnection
-//     .asyncQuery(req.mysqlConnection.SQL_BASE.updateApv, [
-//       data.version,
-//       data.cost,
-//       data.phone,
-//       data.linkState,
-//       data.oper,
-//       data.sn,
-//     ])
-//     .then(
-//       (result) => {},
-//       (err) => {
-//         console.log(req.timeLogFormated + ": updateApv: " + err);
-//       }
-//     );
-// };
 
 module.exports = router;

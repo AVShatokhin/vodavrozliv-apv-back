@@ -5,15 +5,62 @@ module.exports = (config) => {
 
   return async function (req, res, next) {
     if (lastTS < req.timestamp - config_TTLms) {
-      let apv = {};
       await req.mysqlConnection
         .asyncQuery(req.mysqlConnection.SQL_BASE.getAPVconfig, [])
         .then(
           (result) => {
+            let __temp = {};
             result.forEach((e) => {
-              apv[e.sn] = { address: e.address };
+              __temp[e.sn] = e;
             });
-            configControl["apv"] = apv;
+            configControl["apv"] = __temp;
+          },
+          (err) => {
+            console.log(req.timeLogFormated + ": configControl: " + err);
+          }
+        );
+
+      await req.mysqlConnection
+        .asyncQuery(req.mysqlConnection.SQL_BASE.getKrugConfig, [])
+        .then(
+          (result) => {
+            let __temp = {};
+            result.forEach((e) => {
+              __temp[e.krug_id] = e;
+            });
+            configControl["krug"] = __temp;
+          },
+          (err) => {
+            console.log(req.timeLogFormated + ": configControl: " + err);
+          }
+        );
+
+      await req.mysqlConnection
+        .asyncQuery(req.mysqlConnection.SQL_BASE.getBrigConfig, [])
+        .then(
+          (result) => {
+            let __temp = {};
+            result.forEach((e) => {
+              e.brigMembers = JSON.parse(e.brigMembers);
+              __temp[e.brig_id] = e;
+            });
+            configControl["brig"] = __temp;
+          },
+          (err) => {
+            console.log(req.timeLogFormated + ": configControl: " + err);
+          }
+        );
+
+      await req.mysqlConnection
+        .asyncQuery(req.mysqlConnection.SQL_BASE.getEngConfig, ["ENGINEER"])
+        .then(
+          (result) => {
+            let __temp = {};
+            result.forEach((e) => {
+              e.extended = JSON.parse(e.extended);
+              __temp[e.uid] = e;
+            });
+            configControl["eng"] = __temp;
           },
           (err) => {
             console.log(req.timeLogFormated + ": configControl: " + err);
