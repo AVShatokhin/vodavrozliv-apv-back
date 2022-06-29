@@ -1,5 +1,3 @@
-docker stop apv-back
-docker rm apv-back
 docker run -it -d --restart=always --name apv-back \
 					    --link apv-db \
                                            -v /home/webmaster/vodavrozliv-apv-back:/home/webmaster/vodavrozliv-apv-back \
