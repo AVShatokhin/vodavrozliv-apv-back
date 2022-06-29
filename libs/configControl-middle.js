@@ -67,7 +67,53 @@ module.exports = (config) => {
           }
         );
 
+      await req.mysqlConnection
+        .asyncQuery(req.mysqlConnection.SQL_BASE.getErrors, [])
+        .then(
+          (result) => {
+            let __temp = {};
+            result.forEach((e) => {
+              __temp[e.errorCode] = e;
+            });
+            configControl["errors"] = __temp;
+          },
+          (err) => {
+            console.log(req.timeLogFormated + ": configControl: " + err);
+          }
+        );
+
+      await req.mysqlConnection
+        .asyncQuery(req.mysqlConnection.SQL_BASE.getDevices, [])
+        .then(
+          (result) => {
+            let __temp = {};
+            result.forEach((e) => {
+              __temp[e.errorDevice] = e;
+            });
+            configControl["devices"] = __temp;
+          },
+          (err) => {
+            console.log(req.timeLogFormated + ": configControl: " + err);
+          }
+        );
+
+      await req.mysqlConnection
+        .asyncQuery(req.mysqlConnection.SQL_BASE.getMessages, [])
+        .then(
+          (result) => {
+            let __temp = {};
+            result.forEach((e) => {
+              __temp[e.messCode] = e;
+            });
+            configControl["messages"] = __temp;
+          },
+          (err) => {
+            console.log(req.timeLogFormated + ": configControl: " + err);
+          }
+        );
+
       console.log(req.timeLogFormated + ": Load config from DB");
+
       lastTS = req.timestamp;
     }
     req.configControl = configControl;
