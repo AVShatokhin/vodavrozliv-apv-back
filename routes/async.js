@@ -24,7 +24,7 @@ router.post("/async", async function (req, res, next) {
   checkOp(req, result);
   appendInkas(req, result.inkas_data);
 
-  //console.log(result);
+  console.log(req.timeLogFormated + ": INKAS : " + req.text);
 
   res.ok();
 });
@@ -63,6 +63,8 @@ let asyncParser = (income) => {
   result.inkas_data["box"] = baseArray[6].split(":")[1];
 
   let __date_hash = baseArray[7].split(":")[1];
+
+  result.inkas_data["dateUnique"] = __date_hash;
   result.inkas_data["inkas_number"] = __date_hash.substr(9, 4);
 
   let __date = __date_hash.substr(0, 9);
@@ -105,6 +107,7 @@ let checkOp = (req, result) => {
 let appendInkas = async (req, data) => {
   await req.mysqlConnection
     .asyncQuery(req.mysqlConnection.SQL_BASE.appendInkas, [
+      data.dateUnique,
       data.sn,
       data.inkas_number,
       data.date,

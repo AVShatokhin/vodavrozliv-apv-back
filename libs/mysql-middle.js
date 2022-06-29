@@ -17,7 +17,7 @@ module.exports = (config) => {
       };
 
       let d = new Date();
-      return `${n(d.getDate())}.${n(d.getMonth())}.${d.getFullYear()} ${n(
+      return `${n(d.getDate())}.${n(d.getMonth() + 1)}.${d.getFullYear()} ${n(
         d.getHours()
       )}.${n(d.getMinutes())}.${n(d.getSeconds())}`;
     };
