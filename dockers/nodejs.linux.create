@@ -1,4 +1,5 @@
-docker run -it -d --restart=always --name apv-back \
-					    --link apv-db \
+docker run --restart=always -d --name apv-back \
+                                           -e TZ=Europe/Moscow \
+                                           --link apv-db \
                                            -v /home/webmaster/vodavrozliv-apv-back:/home/webmaster/vodavrozliv-apv-back \
                                            -w /home/webmaster/vodavrozliv-apv-back/ -p 3000:3000 node:14.16.1 node bin/www
