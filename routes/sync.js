@@ -2,6 +2,12 @@ var express = require("express");
 var router = express.Router();
 var ERRORS = require("../libs/ERRORS");
 
+let onlineController;
+
+router.setOnlineController = (callback) => {
+  onlineController = callback;
+};
+
 router.post("/sync", async function (req, res, next) {
   if (req?.text == undefined) {
     res.error(ERRORS.NO_DATA, "sync");
@@ -24,6 +30,8 @@ router.post("/sync", async function (req, res, next) {
     result?.main_data?.sn,
     result?.main_data
   );
+
+  onlineController(result?.main_data?.sn);
 
   if (isNewData) {
     appendMain(req, result?.main_data);
