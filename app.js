@@ -6,16 +6,25 @@ var logger = require("morgan");
 var app = express();
 
 const conf = require("./etc/config");
-var mysql = require("./libs/mysql-middle")(conf);
+var configControl = {};
+
+const onlineController = require("./libs/online-control")(conf, configControl);
+var mysql = require("./libs/mysql-middle")(conf, onlineController.init);
+var configController = require("./libs/configControl-middle")(
+  conf,
+  configControl
+);
+
 var config = require("./libs/config-middle")(conf);
 var collector = require("./libs/collectText-middle");
 var ts = require("./libs/ts-middle");
-var controlConfig = require("./libs/configControl-middle")(conf);
+
 var render = require("./libs/renders-apv-middle")();
 var kvs = require("./libs/kvs-apv-storage-middle")();
 
 var indexRouter = require("./routes/index");
 var syncRouter = require("./routes/sync");
+syncRouter.setOnlineController(onlineController.callback);
 var asyncRouter = require("./routes/async");
 
 var inRouter = require("./routes/in"); // удалить
@@ -39,7 +48,7 @@ app.use(config);
 app.use(telegram);
 app.use(mysql);
 app.use(kvs);
-app.use(controlConfig);
+app.use(configController);
 app.use(render);
 app.use(incomes); // удалить
 

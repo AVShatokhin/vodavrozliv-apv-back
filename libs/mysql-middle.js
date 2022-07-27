@@ -1,4 +1,4 @@
-module.exports = (config) => {
+module.exports = (config, initExtendedModules) => {
   const mysql = require("mysql");
 
   var mysqlConnection = mysql.createConnection({
@@ -44,6 +44,8 @@ module.exports = (config) => {
           });
         };
         console.log(timeLogFormated() + ": mysql connected");
+        if (initExtendedModules != undefined)
+          initExtendedModules(mysqlConnection);
       }
     });
   });
