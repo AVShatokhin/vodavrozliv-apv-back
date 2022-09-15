@@ -20,8 +20,16 @@ module.exports = (config) => {
     }
   };
 
+  let getKVSbySN = (SNs) => {
+    return `SELECT link as sn, value as data FROM kvs where ${sqlFromArray(
+      "link",
+      SNs,
+      0
+    )}`;
+  };
+
   return {
-    getAPVconfig: `SELECT sn, address, tgLink, snEQ, activeKrug FROM apv`,
+    getAPVconfig: `SELECT sn, address, tgLink, snEQ, activeKrug, online FROM apv`,
     getKrugConfig: `SELECT krug_id, brig_id, title from krug`,
     getBrigConfig: `SELECT brig_id, brigMembers, brigKey, brigPhone, brigCar, brigName from brig`,
     getEngConfig: `SELECT uid, extended, email FROM ${config.db_prefix}_users WHERE roles like CONCAT('%',?,'%') order by uid`,
@@ -40,7 +48,8 @@ module.exports = (config) => {
     getOnlineApvs: `SELECT sn, online FROM apv`,
     getOfflineApvs: `SELECT sn, tgLink FROM apv WHERE TIME_TO_SEC(TIMEDIFF(now(), lts)) > ? and online=true`,
     setOfflineApvs,
-
+    getReminder: `SELECT value FROM kvs WHERE link=?`,
+    getKVSbySN,
     //appendInkas: `INSERT INTO inkas (sn, inkas_number, date, version, inkas, kup, box, op, op_extended, FLAG_op_failed) VALUES (?,?,?,?,?,?,?,?,?, true)`,
     // Login: `SELECT uid, email, roles, blocked, confirmed, extended from ${config.db_prefix}_users where email=? and pass_hash=md5(?)`,
     // Register: `INSERT into ${config.db_prefix}_users set roles='["${config.default_user_role}"]', email=?, pass_hash=md5(?), extended=?`,

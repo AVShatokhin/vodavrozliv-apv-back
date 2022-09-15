@@ -6,13 +6,18 @@ module.exports = (req, res, next) => {
   };
 
   let d = new Date();
-  req.timeLogFormated = `${n(d.getDate())}.${n(
+
+  let timeLogFormated = `${n(d.getDate())}.${n(
     d.getMonth() + 1
   )}.${d.getFullYear()} ${n(d.getHours())}.${n(d.getMinutes())}.${n(
     d.getSeconds()
   )}`;
 
-  req.timestamp = Date.now();
-
-  next();
+  if (req == undefined) {
+    return timeLogFormated;
+  } else {
+    req.timeLogFormated = timeLogFormated;
+    req.timestamp = Date.now();
+    next();
+  }
 };

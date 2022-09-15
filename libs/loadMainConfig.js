@@ -10,6 +10,7 @@ let loadMainConfig = async (
         let __temp = {};
         result.forEach((e) => {
           __temp[e.sn] = e;
+          __temp[e.sn].online = e.online == 1;
         });
         configControl["apv"] = __temp;
       },
@@ -102,6 +103,24 @@ let loadMainConfig = async (
           __temp[e.messCode] = e;
         });
         configControl["messages"] = __temp;
+      },
+      (err) => {
+        console.log(timeLogFormated + ": configControl: " + err);
+      }
+    );
+
+  await mysqlConnection
+    .asyncQuery(mysqlConnection.SQL_BASE.getReminder, ["Reminder"])
+    .then(
+      (result) => {
+        if (result.length == 0) {
+          configControl["Reminder"] = {
+            daylyReminder: true,
+            apvRemindPeriodValue: 0,
+          };
+        } else {
+          configControl["Reminder"] = JSON.parse(result[0].value);
+        }
       },
       (err) => {
         console.log(timeLogFormated + ": configControl: " + err);

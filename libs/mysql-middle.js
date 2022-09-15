@@ -51,7 +51,12 @@ module.exports = (config, initExtendedModules) => {
   });
 
   return function (req, res, next) {
-    req.mysqlConnection = mysqlConnection;
-    next();
+    if (req == undefined) {
+      // если мы не используем модуль в качестве middleware для epxress, то он просто возвращает mysqlConnection
+      return mysqlConnection;
+    } else {
+      req.mysqlConnection = mysqlConnection;
+      next();
+    }
   };
 };
