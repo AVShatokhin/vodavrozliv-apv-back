@@ -1,4 +1,5 @@
 var express = require("express");
+const { compileClientWithDependenciesTracked } = require("jade");
 var router = express.Router();
 var ERRORS = require("../libs/ERRORS");
 
@@ -40,9 +41,26 @@ router.post("/sync", async function (req, res, next) {
 
   updateApv(req, result?.apv_data);
   checkForMessages(req, result?.main_data);
+  checkForCharge(req, result?.main_data);
 
   res.ok(await checkForCmd(req, result?.main_data));
 });
+
+let checkForCharge = async (req, data) => {
+  if (data.v4 == 1) {
+    await req.mysqlConnection
+      .asyncQuery(req.mysqlConnection.SQL_BASE.updateChargeInfo, [
+        JSON.stringify({ v1: data.v1, lts: new Date().getTime() }),
+        data.sn,
+      ])
+      .then(
+        (result) => {},
+        (err) => {
+          console.log(req.timeLogFormated + ": updateApv: " + err);
+        }
+      );
+  }
+};
 
 let syncParser = (income) => {
   // start/SV3.5.1/N217/w:1182/k:1900/r:1449/m:70,57,57,30,818/c:24/Err:0,1/Mes:10/end

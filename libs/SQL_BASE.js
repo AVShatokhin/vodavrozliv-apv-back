@@ -30,6 +30,7 @@ module.exports = (config) => {
 
   return {
     getAPVconfig: `SELECT sn, address, tgLink, snEQ, activeKrug, online FROM apv`,
+    getAPVsnList: `SELECT sn FROM apv`,
     getKrugConfig: `SELECT krug_id, brig_id, title from krug`,
     getBrigConfig: `SELECT brig_id, brigMembers, brigKey, brigPhone, brigCar, brigName from brig`,
     getEngConfig: `SELECT uid, extended, email FROM ${config.db_prefix}_users WHERE roles like CONCAT('%',?,'%') order by uid`,
@@ -50,6 +51,9 @@ module.exports = (config) => {
     setOfflineApvs,
     getReminder: `SELECT value FROM kvs WHERE link=?`,
     getKVSbySN,
+    getAllMainLastDay: `SELECT sn, lts, v2 FROM main where  DATE(DATE_SUB(now(), INTERVAL 1 DAY)) = DATE(lts)`,
+    replaceStats: `REPLACE INTO dayly_stats SET daylySellValue=?, sn=?, date=DATE(?)`,
+    updateChargeInfo: `UPDATE apv SET chargeInfo=? WHERE sn=?`,
     //appendInkas: `INSERT INTO inkas (sn, inkas_number, date, version, inkas, kup, box, op, op_extended, FLAG_op_failed) VALUES (?,?,?,?,?,?,?,?,?, true)`,
     // Login: `SELECT uid, email, roles, blocked, confirmed, extended from ${config.db_prefix}_users where email=? and pass_hash=md5(?)`,
     // Register: `INSERT into ${config.db_prefix}_users set roles='["${config.default_user_role}"]', email=?, pass_hash=md5(?), extended=?`,

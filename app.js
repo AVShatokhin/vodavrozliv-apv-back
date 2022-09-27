@@ -34,6 +34,7 @@ var incomes = require("./libs/incomes-log-middle")(); // удалить
 const telegram = require("./libs/telegram-middle")(conf);
 
 var watcher = require("./libs/watcher");
+var precalcStats = require("./libs/precalc-stats");
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -78,5 +79,6 @@ app.use(function (err, req, res, next) {
 });
 
 watcher.init(conf, mysql);
+precalcStats.init(conf, mysql);
 
 module.exports = app;
