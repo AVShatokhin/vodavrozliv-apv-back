@@ -300,21 +300,23 @@ let updateApv = async (req, data) => {
 
 let checkForMessages = async (req, data) => {
   let apvConfig = req?.configControl?.apv?.[data.sn];
+  if (apvConfig.tgLink.length == 0) return;
+
   let messages = req?.configControl?.messages;
   let devices = req?.configControl?.devices;
   let errors = req?.configControl?.errors;
 
-  data.messCode.forEach((messCode) => {
+  data.messCode.forEach(async (messCode) => {
     if (messages?.[messCode]?.isActive) {
       try {
-        req.telegram.sendMessage(
+        await req.telegram.sendMessage(
           `@${apvConfig.tgLink}`,
           `${apvConfig.sn} : Сообщение : "${messages[messCode].messText}"`
         );
       } catch (e) {
         console.log(
           req.timeLogFormated +
-            ": TELEGRAM_ERROR: " +
+            ": checkForMessages: TELEGRAM_ERROR: " +
             apvConfig.sn +
             " : " +
             e?.response?.description
@@ -334,7 +336,7 @@ let checkForMessages = async (req, data) => {
     } catch (e) {
       console.log(
         req.timeLogFormated +
-          ": TELEGRAM_ERROR: " +
+          ": checkForErrors: TELEGRAM_ERROR: " +
           apvConfig.sn +
           " : " +
           e?.response?.description
@@ -396,6 +398,8 @@ let checkForCmd = async (req, data) => {
 let sendRawToChannel = async (req, data, text) => {
   let apvConfig = req?.configControl?.apv?.[data.sn];
 
+  if (apvConfig.tgLink.length == 0) return;
+
   try {
     await req.telegram.sendMessage(
       `@${apvConfig.tgLink}`,
@@ -404,7 +408,7 @@ let sendRawToChannel = async (req, data, text) => {
   } catch (e) {
     console.log(
       req.timeLogFormated +
-        ": TELEGRAM_ERROR: " +
+        ": sendRawToChannel: TELEGRAM_ERROR: " +
         apvConfig.sn +
         " : " +
         e?.response?.description
