@@ -36,7 +36,7 @@ router.post("/sync", async function (req, res, next) {
 
   if (isNewData) {
     appendMain(req, result?.main_data);
-    sendRawToChannel(req, result?.main_data, req.text);
+    //sendRawToChannel(req, result?.main_data, req.text);
   }
 
   updateApv(req, result?.apv_data);
