@@ -27,6 +27,8 @@ router.post("/sync", async function (req, res, next) {
     return;
   }
 
+  await req.LoadKVS(result?.main_data?.sn);
+
   checkForEndOfError(req, result?.main_data);
 
   let isNewData = await req.isKVSUpdated(
@@ -48,18 +50,19 @@ router.post("/sync", async function (req, res, next) {
 });
 
 let checkForEndOfError = (req, data) => {
+  if (data?.sn == null) return;
+
   if (
     data.errorCode == 255 &&
     data.errorDevice == 255 &&
-    req.apvStore[data.sn].errorCode != 0 &&
-    req.apvStore[data.sn].errorDevice != 0 &&
-    req.apvStore[data.sn].errorCode != 255 &&
-    req.apvStore[data.sn].errorDevice != 255
+    req.apvStore[data.sn]?.errorCode != 0 &&
+    req.apvStore[data.sn]?.errorDevice != 0 &&
+    req.apvStore[data.sn]?.errorCode != 255 &&
+    req.apvStore[data.sn]?.errorDevice != 255
   ) {
     data.errorCode = 0;
     data.errorDevice = 0;
   }
-  return data;
 };
 
 let checkForCharge = async (req, data) => {
