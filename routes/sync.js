@@ -27,6 +27,8 @@ router.post("/sync", async function (req, res, next) {
     return;
   }
 
+  checkForEndOfError(req, result?.main_data);
+
   let isNewData = await req.isKVSUpdated(
     result?.main_data?.sn,
     result?.main_data
@@ -36,7 +38,6 @@ router.post("/sync", async function (req, res, next) {
 
   if (isNewData) {
     appendMain(req, result?.main_data);
-    //sendRawToChannel(req, result?.main_data, req.text);
   }
 
   updateApv(req, result?.apv_data);
@@ -45,6 +46,21 @@ router.post("/sync", async function (req, res, next) {
 
   res.ok(await checkForCmd(req, result?.main_data));
 });
+
+let checkForEndOfError = (req, data) => {
+  if (
+    data.errorCode == 255 &&
+    data.errorDevice == 255 &&
+    req.apvStore[data.sn].errorCode != 0 &&
+    req.apvStore[data.sn].errorDevice != 0 &&
+    req.apvStore[data.sn].errorCode != 255 &&
+    req.apvStore[data.sn].errorDevice != 255
+  ) {
+    data.errorCode = 0;
+    data.errorDevice = 0;
+  }
+  return data;
+};
 
 let checkForCharge = async (req, data) => {
   if (data.v4 == 1) {
