@@ -29,7 +29,7 @@ router.post("/sync", async function (req, res, next) {
 
   await req.LoadKVS(result?.main_data?.sn);
 
-  checkForEndOfError(req, result?.main_data);
+  await errorsStats(req, result?.main_data);
 
   let isNewData = await req.isKVSUpdated(
     result?.main_data?.sn,
@@ -49,19 +49,64 @@ router.post("/sync", async function (req, res, next) {
   res.ok(await checkForCmd(req, result?.main_data));
 });
 
-let checkForEndOfError = (req, data) => {
-  if (data?.sn == null) return;
+let errorsStats = async (req, data) => {
+  let insertErrorStats = async (req, data) => {
+    await req.mysqlConnection
+      .asyncQuery(req.mysqlConnection.SQL_BASE.insertErrorStats, [
+        data.sn,
+        data.errorCode,
+        data.errorDevice,
+        data.enabled,
+      ])
+      .then(
+        (result) => {},
+        (err) => {
+          console.log(req.timeLogFormated + ": insertErrorStats: " + err);
+        }
+      );
+  };
 
-  if (
-    data.errorCode == 255 &&
-    data.errorDevice == 255 &&
-    req.apvStore[data.sn]?.errorCode != 0 &&
-    req.apvStore[data.sn]?.errorDevice != 0 &&
-    req.apvStore[data.sn]?.errorCode != 255 &&
-    req.apvStore[data.sn]?.errorDevice != 255
-  ) {
-    data.errorCode = 0;
-    data.errorDevice = 0;
+  let sn = data.sn;
+
+  if (data.isError) {
+    if (req?.apvStore?.[sn]?.isError == true) {
+      if (
+        req.apvStore[sn].errorCode != data.errorCode &&
+        req.apvStore[sn].errorDevice != data.errorDevice
+      ) {
+        // генерируем две записи об ошибке с 1) enabled = false 2) enabled = true
+        await insertErrorStats(req, {
+          sn,
+          errorCode: req.apvStore[sn].errorCode,
+          errorDevice: req.apvStore[sn].errorDevice,
+          enabled: false,
+        });
+        await insertErrorStats(req, {
+          sn,
+          errorCode: data.errorCode,
+          errorDevice: data.errorDevice,
+          enabled: true,
+        });
+      }
+    } else {
+      // генерируем новую запись об ошибке с enabled = true
+      await insertErrorStats(req, {
+        sn,
+        errorCode: data.errorCode,
+        errorDevice: data.errorDevice,
+        enabled: true,
+      });
+    }
+  } else {
+    if (req.apvStore?.[sn]?.isError == true) {
+      // берём ошибку которая уже была и формируем из неё запись с enabled = false
+      await insertErrorStats(req, {
+        sn,
+        errorCode: req.apvStore[sn].errorCode,
+        errorDevice: req.apvStore[sn].errorDevice,
+        enabled: false,
+      });
+    }
   }
 };
 
@@ -248,6 +293,11 @@ let syncParser = (income) => {
   result.main_data["dv5"] = __dv[4];
 
   result.error = ERRORS.OK;
+
+  result.main_data.isError = !(
+    result.main_data.errorCode == 255 && result.main_data.errorDevice == 255
+  );
+
   return result;
 };
 
@@ -414,25 +464,25 @@ let checkForCmd = async (req, data) => {
   return cmd;
 };
 
-let sendRawToChannel = async (req, data, text) => {
-  let apvConfig = req?.configControl?.apv?.[data.sn];
+// let sendRawToChannel = async (req, data, text) => {
+//   let apvConfig = req?.configControl?.apv?.[data.sn];
 
-  if (apvConfig.tgLink.length == 0) return;
+//   if (apvConfig.tgLink.length == 0) return;
 
-  try {
-    await req.telegram.sendMessage(
-      `@${apvConfig.tgLink}`,
-      `${apvConfig.sn} : RAW : "${text}"`
-    );
-  } catch (e) {
-    console.log(
-      req.timeLogFormated +
-        ": sendRawToChannel: TELEGRAM_ERROR: " +
-        apvConfig.sn +
-        " : " +
-        e?.response?.description
-    );
-  }
-};
+//   try {
+//     await req.telegram.sendMessage(
+//       `@${apvConfig.tgLink}`,
+//       `${apvConfig.sn} : RAW : "${text}"`
+//     );
+//   } catch (e) {
+//     console.log(
+//       req.timeLogFormated +
+//         ": sendRawToChannel: TELEGRAM_ERROR: " +
+//         apvConfig.sn +
+//         " : " +
+//         e?.response?.description
+//     );
+//   }
+// };
 
 module.exports = router;

@@ -40,8 +40,22 @@ module.exports = (config, configControl) => {
         );
 
       __offlines.forEach((e) => {
-        onlines[e.sn] = 0;
+        // записываем в журналы данные о переходе в офлайн
+        mysqlConnection
+          .asyncQuery(mysqlConnection.SQL_BASE.insertErrorStats, [
+            e.sn,
+            config.sync_offlineCode,
+            config.sync_LinkDevice,
+            true,
+          ])
+          .then(
+            (result) => {},
+            (err) => {
+              console.log("OnlineController : insertErrorStats: " + err);
+            }
+          );
 
+        onlines[e.sn] = 0;
         console.log(e.sn + ": offline");
 
         mysqlConnection
@@ -99,6 +113,21 @@ module.exports = (config, configControl) => {
       if (onlines[sn]) return;
       onlines[sn] = 1;
       console.log(sn + ": online");
+
+      // записываем в статистику ошибок выход из офлайна
+      mysqlConnection
+        .asyncQuery(mysqlConnection.SQL_BASE.insertErrorStats, [
+          sn,
+          config.sync_offlineCode,
+          config.sync_LinkDevice,
+          false,
+        ])
+        .then(
+          (result) => {},
+          (err) => {
+            console.log("OnlineController : insertErrorStats: " + err);
+          }
+        );
 
       mysqlConnection
         .asyncQuery(mysqlConnection.SQL_BASE.appendMainOnlineOffline, [
