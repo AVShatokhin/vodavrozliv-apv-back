@@ -13,6 +13,7 @@ let init = async (config, mysqlConnection) => {
   });
 
   schedule.scheduleJob("0 * * * *", async function () {
+    //schedule.scheduleJob("* * * * *", async function () {
     let configControl = {};
     await loadMainConfig(mysqlConnection(), ts(), configControl);
 
@@ -41,6 +42,10 @@ let apvResend = async function (
 ) {
   let __dataToSend = [];
 
+  let messages = configControl?.messages;
+  let devices = configControl?.devices;
+  let errors = configControl?.errors;
+
   await mysqlConnection
     .asyncQuery(
       mysqlConnection.SQL_BASE.getKVSbySN(
@@ -59,12 +64,53 @@ let apvResend = async function (
       }
     );
 
-  __dataToSend.forEach((e) => {
+  __dataToSend.forEach(async (e) => {
+    let onof = (bool) => {
+      return bool ? "ON" : "OFF";
+    };
+
+    let errok = (bool) => {
+      return bool ? "ERROR" : "OK";
+    };
+
+    let data = JSON.parse(e.data);
+
+    // data.messCode.forEach((mc) => {
+    //   mc = messages[mc];
+    // });
+    //console.log(data);
+
+    //    let __mesages = data.messCode.join(", ");
+    let __messages = "";
+
+    let __text = `${e.sn}: Сводка
+    Версия: ${data.version};
+    Продал: ${data.w} л.;
+    Купюрник: ${data.k} [${onof(!data.FLAG_k_off)}];
+    Монетник: ${data.m} [${onof(!data.FLAG_m_off)}];
+    Безнал: ${data.r} [${onof(!data.FLAG_r_off)}];
+    Тубы: 1:${data.m1}:[${errok(data.FLAG_error_m1)}], 2:${data.m2}:[${errok(
+      data.FLAG_error_m2
+    )}], 5:${data.m5}:[${errok(data.FLAG_error_m5)}], 10:${data.m10}:[${errok(
+      data.FLAG_error_m10
+    )}];
+    Температура: ${data.c} °C [${onof(!data.FLAG_c_off)}];
+    Ошибка: ${devices[data.errorDevice].deviceName}:${
+      errors[data.errorCode].errorText
+    };
+    Сообщения: ${__messages};
+    V: ${data.v1},${data.v2},${data.v3},${data.v4};
+    Dv: ${data.dv1},${data.dv2},${data.dv3},${data.dv4},${data.dv5};
+    Бесплатная раздача: ${data.f} л. [${onof(data.FLAG_f_off)}];
+    Тара: ${data.tSOLD}/${data.tREMAIN} [${onof(!data.FLAG_t_off)}];`;
+
     try {
-      bot.telegram.sendMessage(
+      console.log(e.sn + "+");
+      await bot.telegram.sendMessage(
         `@${configControl.apv[e.sn].tgLink}`,
-        `${e.sn} : Дублирую информацию : ${e.data}`
+        __text
       );
+      console.log(e.sn + "-");
     } catch (err) {
       console.log(
         "TELEGRAM_ERROR: " + e.sn + " : " + err?.response?.description
