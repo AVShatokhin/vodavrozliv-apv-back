@@ -36,7 +36,7 @@ module.exports = (config) => {
     getEngConfig: `SELECT uid, extended, email FROM ${config.db_prefix}_users WHERE roles like CONCAT('%',?,'%') order by uid`,
     kvsReplace: `REPLACE INTO kvs SET link=?, value=?`,
     kvsGet: `SELECT value FROM kvs WHERE link=?;`,
-    appendMain: `INSERT INTO main (sn, FLAG_start, version, w, k, r, m, m1, m2, m5, m10, FLAG_error_m1, FLAG_error_m2, FLAG_error_m5, FLAG_error_m10, tSOLD, tREMAIN, c, v1, v2, v3, v4, dv1, dv2, dv3, dv4, dv5, errorDevice, errorCode, messCode, FLAG_k_off, FLAG_r_off, FLAG_m_off, FLAG_c_off, FLAG_t_off) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    appendMain: `INSERT INTO main (sn, FLAG_start, version, w, k, r, m, m1, m2, m5, m10, FLAG_error_m1, FLAG_error_m2, FLAG_error_m5, FLAG_error_m10, tSOLD, tREMAIN, c, v1, v2, v3, v4, dv1, dv2, dv3, dv4, dv5, f, errorDevice, errorCode, messCode, FLAG_k_off, FLAG_r_off, FLAG_m_off, FLAG_c_off, FLAG_t_off, FLAG_f_off) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     appendMainOnlineOffline: `INSERT INTO main (sn, errorDevice, errorCode) VALUES (?, ?, ?)`,
     updateApv: `UPDATE apv SET version=?, cost=?, phone=?, linkState=?, oper=?, lts=now(), a=?, online=true WHERE sn=?`,
     appendInkas: `INSERT INTO inkas (dateUnique, sn, inkas_number, date, krug_name, address, version, inkas, kup, box, rd, op, op_extended, op_state) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,

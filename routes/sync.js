@@ -154,7 +154,7 @@ let syncParser = (income) => {
   // 11 - n - номер SIM карты n:93081122233
   // 12 - s - качество связи от 0 - 31, s:15
   // 13 - o - оператор o:Tele2
-  // 14 - end
+  // 15 - end
 
   if (baseArray.length != 19) {
     return result;
@@ -292,6 +292,9 @@ let syncParser = (income) => {
   result.main_data["dv4"] = __dv[3];
   result.main_data["dv5"] = __dv[4];
 
+  result.main_data["FLAG_f_off"] = true;
+  result.main_data["f"] = 0;
+
   result.error = ERRORS.OK;
 
   result.main_data.isError = !(
@@ -331,6 +334,7 @@ let appendMain = async (req, data) => {
       data.dv3,
       data.dv4,
       data.dv5,
+      data.f,
       data.errorDevice,
       data.errorCode,
       JSON.stringify(data.messCode),
@@ -339,6 +343,7 @@ let appendMain = async (req, data) => {
       data.FLAG_m_off,
       data.FLAG_c_off,
       data.FLAG_t_off,
+      data.FLAG_f_off,
     ])
     .then(
       (result) => {},
