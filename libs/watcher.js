@@ -4,6 +4,68 @@ const schedule = require("node-schedule");
 const config = require("../etc/config");
 const { Telegraf } = require("telegraf");
 
+let message = (e, configControl) => {
+  let onof = (bool) => {
+    return bool ? "ON" : "OFF";
+  };
+
+  let errok = (bool) => {
+    return bool ? "ERROR" : "OK";
+  };
+  let __messages = configControl?.messages;
+  let __devices = configControl?.devices;
+  let __errors = configControl?.errors;
+
+  let data = JSON.parse(e.data);
+  let messages = [];
+
+  data.messCode.forEach((mc) => {
+    messages.push(__messages?.[mc]?.messText || "Неизвестное сообщение");
+  });
+
+  return `${e.sn}: Сводка
+  Версия: ${data.version};
+  Продал: ${data.w} л.;
+  Купюрник: ${data.k} [${onof(!data.FLAG_k_off)}];
+  Монетник: ${data.m} [${onof(!data.FLAG_m_off)}];
+  Безнал: ${data.r} [${onof(!data.FLAG_r_off)}];
+  Тубы: 1:${data.m1}:[${errok(data.FLAG_error_m1)}], 2:${data.m2}:[${errok(
+    data.FLAG_error_m2
+  )}], 5:${data.m5}:[${errok(data.FLAG_error_m5)}], 10:${data.m10}:[${errok(
+    data.FLAG_error_m10
+  )}];
+  Температура: ${data.c} °C [${onof(!data.FLAG_c_off)}];
+  Ошибка: ${
+    __devices?.[data.errorDevice]?.deviceName || "Неизвестное устройство"
+  }:${__errors?.[data.errorCode]?.errorText || "Неизвестная ошибка"};
+  Сообщения: ${messages.join(", ")};
+  V: ${data.v1},${data.v2},${data.v3},${data.v4};
+  Dv: ${data.dv1},${data.dv2},${data.dv3},${data.dv4},${data.dv5};
+  Бесплатная раздача: ${data.f} л. [${onof(data.FLAG_f_off)}];
+  Тара: ${data.tSOLD}/${data.tREMAIN} [${onof(!data.FLAG_t_off)}];`;
+};
+
+let recurcyMain = (i, dataToSend, bot, configControl) => {
+  let __i = i;
+  if (__i < dataToSend.length) {
+    let e = dataToSend[i];
+    bot.telegram
+      .sendMessage(
+        `@${configControl.apv[e.sn].tgLink}`,
+        message(e, configControl)
+      )
+      .then(() => {
+        recurcyMain(__i + 1, dataToSend, bot, configControl);
+      })
+      .catch((err) => {
+        console.log(
+          "TELEGRAM_ERROR: " + e.sn + " : " + err?.response?.description
+        );
+        recurcyMain(__i + 1, dataToSend, bot, configControl);
+      });
+  }
+};
+
 let init = async (config, mysqlConnection) => {
   let token = config.botToken;
   const bot = new Telegraf(token);
@@ -13,7 +75,6 @@ let init = async (config, mysqlConnection) => {
   });
 
   schedule.scheduleJob("0 * * * *", async function () {
-    //schedule.scheduleJob("* * * * *", async function () {
     let configControl = {};
     await loadMainConfig(mysqlConnection(), ts(), configControl);
 
@@ -41,12 +102,7 @@ let apvResend = async function (
   timeLogFormated
 ) {
   let __dataToSend = [];
-
-  let messages = configControl?.messages;
-  let devices = configControl?.devices;
-  let errors = configControl?.errors;
-
-  await mysqlConnection
+  __dataToSend = await mysqlConnection
     .asyncQuery(
       mysqlConnection.SQL_BASE.getKVSbySN(
         Object.keys(configControl.apv).filter((sn) => {
@@ -57,92 +113,53 @@ let apvResend = async function (
     )
     .then(
       (result) => {
-        __dataToSend = result;
+        return result;
       },
       (err) => {
         console.log(timeLogFormated + ": reminder: " + err);
       }
     );
 
-  __dataToSend.forEach(async (e) => {
-    let onof = (bool) => {
-      return bool ? "ON" : "OFF";
-    };
+  recurcyMain(0, __dataToSend, bot, configControl);
+};
 
-    let errok = (bool) => {
-      return bool ? "ERROR" : "OK";
-    };
-
-    let data = JSON.parse(e.data);
-
-    // data.messCode.forEach((mc) => {
-    //   mc = messages[mc];
-    // });
-    //console.log(data);
-
-    //    let __mesages = data.messCode.join(", ");
-    let __messages = "";
-
-    let __text = `${e.sn}: Сводка
-    Версия: ${data.version};
-    Продал: ${data.w} л.;
-    Купюрник: ${data.k} [${onof(!data.FLAG_k_off)}];
-    Монетник: ${data.m} [${onof(!data.FLAG_m_off)}];
-    Безнал: ${data.r} [${onof(!data.FLAG_r_off)}];
-    Тубы: 1:${data.m1}:[${errok(data.FLAG_error_m1)}], 2:${data.m2}:[${errok(
-      data.FLAG_error_m2
-    )}], 5:${data.m5}:[${errok(data.FLAG_error_m5)}], 10:${data.m10}:[${errok(
-      data.FLAG_error_m10
-    )}];
-    Температура: ${data.c} °C [${onof(!data.FLAG_c_off)}];
-    Ошибка: ${devices[data.errorDevice].deviceName}:${
-      errors[data.errorCode].errorText
-    };
-    Сообщения: ${__messages};
-    V: ${data.v1},${data.v2},${data.v3},${data.v4};
-    Dv: ${data.dv1},${data.dv2},${data.dv3},${data.dv4},${data.dv5};
-    Бесплатная раздача: ${data.f} л. [${onof(data.FLAG_f_off)}];
-    Тара: ${data.tSOLD}/${data.tREMAIN} [${onof(!data.FLAG_t_off)}];`;
-
-    try {
-      console.log(e.sn + "+");
-      await bot.telegram.sendMessage(
-        `@${configControl.apv[e.sn].tgLink}`,
-        __text
-      );
-      console.log(e.sn + "-");
-    } catch (err) {
-      console.log(
-        "TELEGRAM_ERROR: " + e.sn + " : " + err?.response?.description
-      );
-    }
-  });
+let recurcyOffline = (i, offlineSn, bot, configControl) => {
+  let __i = i;
+  if (__i < offlineSn.length) {
+    let sn = offlineSn[i];
+    bot.telegram
+      .sendMessage(
+        `@${configControl.apv[sn].tgLink}`,
+        `${sn} : Напоминание : Всё ещё нет связи с АПВ`
+      )
+      .then(() => {
+        recurcyOffline(__i + 1, offlineSn, bot, configControl);
+      })
+      .catch((err) => {
+        console.log(
+          "TELEGRAM_ERROR: " + sn + " : " + err?.response?.description
+        );
+        recurcyOffline(__i + 1, offlineSn, bot, configControl);
+      });
+  }
 };
 
 let offlineReminder = async function (mysqlConnection, bot) {
   let configControl = {};
   await loadMainConfig(mysqlConnection(), ts(), configControl);
 
-  Object.keys(configControl.apv)
-    .filter((sn) => {
+  recurcyOffline(
+    0,
+    Object.keys(configControl.apv).filter((sn) => {
       return (
         configControl.apv[sn].online == false &&
         configControl.apv[sn].tgLink != "" &&
         configControl.Reminder.daylyReminder
       );
-    })
-    .forEach((sn) => {
-      try {
-        bot.telegram.sendMessage(
-          `@${configControl.apv[sn].tgLink}`,
-          `${sn} : Напоминание : Всё ещё нет связи с АПВ`
-        );
-      } catch (err) {
-        console.log(
-          "TELEGRAM_ERROR: " + e.sn + " : " + err?.response?.description
-        );
-      }
-    });
+    }),
+    bot,
+    configControl
+  );
 };
 
 module.exports.init = init;
