@@ -1,5 +1,4 @@
 var express = require("express");
-//const { compileClientWithDependenciesTracked } = require("jade");
 var router = express.Router();
 var ERRORS = require("../libs/ERRORS");
 
@@ -30,6 +29,7 @@ router.post("/sync_test", async function (req, res, next) {
   await req.LoadKVS(result?.main_data?.sn);
 
   await errorsStats(req, result?.main_data);
+  await freeWaterStats(req, result?.main_data);
 
   let isNewData = await req.isKVSUpdated(
     result?.main_data?.sn,
@@ -470,25 +470,37 @@ let checkForCmd = async (req, data) => {
   return cmd;
 };
 
-// let sendRawToChannel = async (req, data, text) => {
-//   let apvConfig = req?.configControl?.apv?.[data.sn];
+let freeWaterStats = async (req, data) => {
+  let insertFreeWaterStats = async (req, data) => {
+    await req.mysqlConnection
+      .asyncQuery(req.mysqlConnection.SQL_BASE.insertFreeWaterStats, [
+        data.sn,
+        data.FLAG_f_off,
+        data.f,
+      ])
+      .then(
+        (result) => {},
+        (err) => {
+          console.log(req.timeLogFormated + ": insertFreeWaterStats: " + err);
+        }
+      );
+  };
 
-//   if (apvConfig.tgLink.length == 0) return;
+  let sn = data.sn;
 
-//   try {
-//     await req.telegram.sendMessage(
-//       `@${apvConfig.tgLink}`,
-//       `${apvConfig.sn} : RAW : "${text}"`
-//     );
-//   } catch (e) {
-//     console.log(
-//       req.timeLogFormated +
-//         ": sendRawToChannel: TELEGRAM_ERROR: " +
-//         apvConfig.sn +
-//         " : " +
-//         e?.response?.description
-//     );
-//   }
-// };
+  if (data.FLAG_f_off) {
+    // раздача отключена
+    if (req.apvStore?.[sn]?.FLAG_f_off == false) {
+      // только что выключили
+      insertFreeWaterStats(req, { sn, FLAG_f_off: true, f: data.f });
+    }
+  } else {
+    // раздача включена
+    if (req.apvStore?.[sn]?.FLAG_f_off == true) {
+      // только что включили
+      insertFreeWaterStats(req, { sn, FLAG_f_off: false, f: 0 });
+    }
+  }
+};
 
 module.exports = router;

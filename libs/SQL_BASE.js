@@ -55,5 +55,6 @@ module.exports = (config) => {
     replaceStats: `REPLACE INTO dayly_stats SET daylySellValue=?, sn=?, date=DATE(?)`,
     updateChargeInfo: `UPDATE apv SET chargeInfo=? WHERE sn=?`,
     insertErrorStats: `INSERT INTO error_stat SET sn=?, errorCode=?, errorDevice=?, enabled=?`,
+    insertFreeWaterStats: `INSERT INTO free_stat SET sn=?, FLAG_f_off=?, f=?`,
   };
 };
