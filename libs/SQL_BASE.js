@@ -51,7 +51,7 @@ module.exports = (config) => {
     setOfflineApvs,
     getReminder: `SELECT value FROM kvs WHERE link=?`,
     getKVSbySN,
-    getAllMainLastDay: `SELECT sn, lts, v2 FROM main where  DATE(DATE_SUB(now(), INTERVAL 1 DAY)) = DATE(lts)`,
+    getAllMainLastDay: `SELECT sn, lts, v2 FROM main where  DATE(DATE_SUB(now(), INTERVAL 1 DAY)) = DATE(lts) AND errorDevice!=${config.sync_LinkDevice}`,
     replaceStats: `REPLACE INTO dayly_stats SET daylySellValue=?, sn=?, date=DATE(?)`,
     updateChargeInfo: `UPDATE apv SET chargeInfo=? WHERE sn=?`,
     insertErrorStats: `INSERT INTO error_stat SET sn=?, errorCode=?, errorDevice=?, enabled=?`,
