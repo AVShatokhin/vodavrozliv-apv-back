@@ -26,8 +26,8 @@ var indexRouter = require("./routes/index");
 var syncRouter = require("./routes/sync");
 syncRouter.setOnlineController(onlineController.callback);
 
-var syncRouterTest = require("./routes/sync_test");
-syncRouterTest.setOnlineController(onlineController.callback);
+// var syncRouterTest = require("./routes/sync_test");
+// syncRouterTest.setOnlineController(onlineController.callback);
 
 var replyRouter = require("./routes/reply");
 var asyncRouter = require("./routes/async");
@@ -62,7 +62,7 @@ app.use(incomes); // удалить
 
 app.use("/", indexRouter);
 app.use(syncRouter);
-app.use(syncRouterTest);
+// app.use(syncRouterTest);
 app.use(asyncRouter);
 app.use(replyRouter);
 

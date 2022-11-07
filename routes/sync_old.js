@@ -1,4 +1,5 @@
 var express = require("express");
+const { compileClientWithDependenciesTracked } = require("jade");
 var router = express.Router();
 var ERRORS = require("../libs/ERRORS");
 
@@ -8,7 +9,7 @@ router.setOnlineController = (callback) => {
   onlineController = callback;
 };
 
-router.post("/sync_test", async function (req, res, next) {
+router.post("/sync_old", async function (req, res, next) {
   if (req?.text == undefined) {
     res.error(ERRORS.NO_DATA, "sync");
     return;
@@ -29,7 +30,6 @@ router.post("/sync_test", async function (req, res, next) {
   await req.LoadKVS(result?.main_data?.sn);
 
   await errorsStats(req, result?.main_data);
-  await freeWaterStats(req, result?.main_data);
 
   let isNewData = await req.isKVSUpdated(
     result?.main_data?.sn,
@@ -156,7 +156,7 @@ let syncParser = (income) => {
   // 13 - o - оператор o:Tele2
   // 15 - end
 
-  if (baseArray.length != 20) {
+  if (baseArray.length != 19) {
     return result;
   }
 
@@ -292,9 +292,8 @@ let syncParser = (income) => {
   result.main_data["dv4"] = __dv[3];
   result.main_data["dv5"] = __dv[4];
 
-  let __f = baseArray[18].split(":")[1].split(",");
-  result.main_data["FLAG_f_off"] = __f[0] == 0 ? true : false;
-  result.main_data["f"] = __f[1];
+  result.main_data["FLAG_f_off"] = true;
+  result.main_data["f"] = 0;
 
   result.error = ERRORS.OK;
 
@@ -470,37 +469,25 @@ let checkForCmd = async (req, data) => {
   return cmd;
 };
 
-let freeWaterStats = async (req, data) => {
-  let insertFreeWaterStats = async (req, data) => {
-    await req.mysqlConnection
-      .asyncQuery(req.mysqlConnection.SQL_BASE.insertFreeWaterStats, [
-        data.sn,
-        data.FLAG_f_off,
-        data.f,
-      ])
-      .then(
-        (result) => {},
-        (err) => {
-          console.log(req.timeLogFormated + ": insertFreeWaterStats: " + err);
-        }
-      );
-  };
+// let sendRawToChannel = async (req, data, text) => {
+//   let apvConfig = req?.configControl?.apv?.[data.sn];
 
-  let sn = data.sn;
+//   if (apvConfig.tgLink.length == 0) return;
 
-  if (data.FLAG_f_off) {
-    // раздача отключена
-    if (req.apvStore?.[sn]?.FLAG_f_off == false) {
-      // только что выключили
-      insertFreeWaterStats(req, { sn, FLAG_f_off: true, f: data.f });
-    }
-  } else {
-    // раздача включена
-    if (req.apvStore?.[sn]?.FLAG_f_off == true) {
-      // только что включили
-      insertFreeWaterStats(req, { sn, FLAG_f_off: false, f: 0 });
-    }
-  }
-};
+//   try {
+//     await req.telegram.sendMessage(
+//       `@${apvConfig.tgLink}`,
+//       `${apvConfig.sn} : RAW : "${text}"`
+//     );
+//   } catch (e) {
+//     console.log(
+//       req.timeLogFormated +
+//         ": sendRawToChannel: TELEGRAM_ERROR: " +
+//         apvConfig.sn +
+//         " : " +
+//         e?.response?.description
+//     );
+//   }
+// };
 
 module.exports = router;

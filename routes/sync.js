@@ -1,5 +1,4 @@
 var express = require("express");
-const { compileClientWithDependenciesTracked } = require("jade");
 var router = express.Router();
 var ERRORS = require("../libs/ERRORS");
 
@@ -30,6 +29,7 @@ router.post("/sync", async function (req, res, next) {
   await req.LoadKVS(result?.main_data?.sn);
 
   await errorsStats(req, result?.main_data);
+  await freeWaterStats(req, result?.main_data);
 
   let isNewData = await req.isKVSUpdated(
     result?.main_data?.sn,
@@ -68,12 +68,16 @@ let errorsStats = async (req, data) => {
 
   let sn = data.sn;
 
+  // console.log("isError in data: " + data.isError);
+  // console.log("isError in apvStore: " + req?.apvStore?.[sn]?.isError);
+
   if (data.isError) {
     if (req?.apvStore?.[sn]?.isError == true) {
       if (
-        req.apvStore[sn].errorCode != data.errorCode &&
+        req.apvStore[sn].errorCode != data.errorCode ||
         req.apvStore[sn].errorDevice != data.errorDevice
       ) {
+        // console.log("Новая ошибка меняет собой старую ошибку");
         // генерируем две записи об ошибке с 1) enabled = false 2) enabled = true
         await insertErrorStats(req, {
           sn,
@@ -89,6 +93,7 @@ let errorsStats = async (req, data) => {
         });
       }
     } else {
+      // console.log("Новая ошибка появилась");
       // генерируем новую запись об ошибке с enabled = true
       await insertErrorStats(req, {
         sn,
@@ -99,6 +104,7 @@ let errorsStats = async (req, data) => {
     }
   } else {
     if (req.apvStore?.[sn]?.isError == true) {
+      // console.log("Старая ошибка ушла");
       // берём ошибку которая уже была и формируем из неё запись с enabled = false
       await insertErrorStats(req, {
         sn,
@@ -156,7 +162,7 @@ let syncParser = (income) => {
   // 13 - o - оператор o:Tele2
   // 15 - end
 
-  if (baseArray.length != 19) {
+  if (baseArray.length != 20) {
     return result;
   }
 
@@ -292,8 +298,9 @@ let syncParser = (income) => {
   result.main_data["dv4"] = __dv[3];
   result.main_data["dv5"] = __dv[4];
 
-  result.main_data["FLAG_f_off"] = true;
-  result.main_data["f"] = 0;
+  let __f = baseArray[18].split(":")[1].split(",");
+  result.main_data["FLAG_f_off"] = __f[0] == 0 ? true : false;
+  result.main_data["f"] = __f[1];
 
   result.error = ERRORS.OK;
 
@@ -469,25 +476,37 @@ let checkForCmd = async (req, data) => {
   return cmd;
 };
 
-// let sendRawToChannel = async (req, data, text) => {
-//   let apvConfig = req?.configControl?.apv?.[data.sn];
+let freeWaterStats = async (req, data) => {
+  let insertFreeWaterStats = async (req, data) => {
+    await req.mysqlConnection
+      .asyncQuery(req.mysqlConnection.SQL_BASE.insertFreeWaterStats, [
+        data.sn,
+        data.FLAG_f_off,
+        data.f,
+      ])
+      .then(
+        (result) => {},
+        (err) => {
+          console.log(req.timeLogFormated + ": insertFreeWaterStats: " + err);
+        }
+      );
+  };
 
-//   if (apvConfig.tgLink.length == 0) return;
+  let sn = data.sn;
 
-//   try {
-//     await req.telegram.sendMessage(
-//       `@${apvConfig.tgLink}`,
-//       `${apvConfig.sn} : RAW : "${text}"`
-//     );
-//   } catch (e) {
-//     console.log(
-//       req.timeLogFormated +
-//         ": sendRawToChannel: TELEGRAM_ERROR: " +
-//         apvConfig.sn +
-//         " : " +
-//         e?.response?.description
-//     );
-//   }
-// };
+  if (data.FLAG_f_off) {
+    // раздача отключена
+    if (req.apvStore?.[sn]?.FLAG_f_off == false) {
+      // только что выключили
+      insertFreeWaterStats(req, { sn, FLAG_f_off: true, f: data.f });
+    }
+  } else {
+    // раздача включена
+    if (req.apvStore?.[sn]?.FLAG_f_off == true) {
+      // только что включили
+      insertFreeWaterStats(req, { sn, FLAG_f_off: false, f: 0 });
+    }
+  }
+};
 
 module.exports = router;
