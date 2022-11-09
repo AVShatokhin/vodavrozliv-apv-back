@@ -26,10 +26,11 @@ router.post("/sync", async function (req, res, next) {
     return;
   }
 
-  await req.LoadKVS(result?.main_data?.sn);
+  await req.LoadKVS(result.main_data.sn);
 
   await errorsStats(req, result?.main_data);
   await freeWaterStats(req, result?.main_data);
+  await calcDelta(req, result?.main_data);
 
   let isNewData = await req.isKVSUpdated(
     result?.main_data?.sn,
@@ -48,6 +49,97 @@ router.post("/sync", async function (req, res, next) {
 
   res.ok(await checkForCmd(req, result?.main_data));
 });
+
+let calcDelta = async (req, newData) => {
+  let FROM_SECONDS = (seconds) => {
+    let __date = new Date();
+    __date.setTime(seconds * 1000);
+    return `${1900 + __date.getYear()}-${
+      1 + __date.getMonth() > 9
+        ? 1 + __date.getMonth()
+        : "0" + (1 + __date.getMonth())
+    }-${__date.getDate() > 9 ? __date.getDate() : "0" + __date.getDate()}`;
+  };
+
+  let __sn = newData.sn;
+  let __oldData = req.apvStore[__sn];
+
+  let __oldEq = __oldData?.r || 0;
+  let __oldNal =
+    Number(__oldData?.k || 0) +
+    Number(__oldData?.m1 || 0) +
+    2 * (__oldData?.m2 || 0) +
+    5 * (__oldData?.m5 || 0) +
+    10 * (__oldData?.m10 || 0);
+  let __oldTSOLD = __oldData?.tSOLD || 0;
+  let __oldW = __oldData?.w || 0;
+
+  let __newEq = newData?.r || 0;
+  let __newNal =
+    Number(newData?.k || 0) +
+    Number(newData?.m1 || 0) +
+    2 * (newData?.m2 || 0) +
+    5 * (newData?.m5 || 0) +
+    10 * (newData?.m10 || 0);
+  let __newTSOLD = newData?.tSOLD || 0;
+  let __newW = newData?.w || 0;
+
+  let __deltaEq = __oldEq <= __newEq ? __newEq - __oldEq : __newEq;
+  let __deltaNal = __oldNal <= __newNal ? __newNal - __oldNal : __newNal;
+  let __deltaTSOLD =
+    __oldTSOLD <= __newTSOLD ? __newTSOLD - __oldTSOLD : __newTSOLD;
+  let __deltaW = __oldW <= __newW ? __newW - __oldW : __newW;
+
+  if (
+    (__deltaEq > 0) |
+    (__deltaNal > 0) |
+    (__deltaTSOLD > 0) |
+    (__deltaW > 0)
+  ) {
+    // console.log("deltaEq = " + __deltaEq);
+    // console.log("deltaNal = " + __deltaNal);
+    // console.log("deltaTSOLD = " + __deltaTSOLD);
+    // console.log("deltaW = " + __deltaW);
+    let __date = FROM_SECONDS(new Date().getTime() / 1000);
+
+    if (
+      await req.mysqlConnection
+        .asyncQuery(req.mysqlConnection.SQL_BASE.updateDelta, [
+          __deltaNal,
+          __deltaEq,
+          __deltaTSOLD,
+          __deltaW,
+          __date,
+          __sn,
+        ])
+        .then(
+          (result) => {
+            // console.log(result);
+            return result.affectedRows == 0;
+          },
+          (err) => {
+            console.log(req.timeLogFormated + ": updateDelta: " + err);
+          }
+        )
+    ) {
+      req.mysqlConnection
+        .asyncQuery(req.mysqlConnection.SQL_BASE.insertDelta, [
+          __deltaNal,
+          __deltaEq,
+          __deltaTSOLD,
+          __deltaW,
+          __date,
+          __sn,
+        ])
+        .then(
+          (result) => {},
+          (err) => {
+            console.log(req.timeLogFormated + ": insertDelta: " + err);
+          }
+        );
+    }
+  }
+};
 
 let errorsStats = async (req, data) => {
   let insertErrorStats = async (req, data) => {

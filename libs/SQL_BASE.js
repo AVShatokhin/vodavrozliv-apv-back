@@ -56,5 +56,7 @@ module.exports = (config) => {
     updateChargeInfo: `UPDATE apv SET chargeInfo=? WHERE sn=?`,
     insertErrorStats: `INSERT INTO error_stat SET sn=?, errorCode=?, errorDevice=?, enabled=?`,
     insertFreeWaterStats: `INSERT INTO free_stat SET sn=?, FLAG_f_off=?, f=?`,
+    updateDelta: `UPDATE delta SET nal=nal+?, eq=eq+?, tSOLD=tSOLD+?, w=w+? WHERE date=? and sn=?`,
+    insertDelta: `INSERT INTO delta SET nal=?, eq=?, tSOLD=?, w=?, date=?, sn=?`,
   };
 };
