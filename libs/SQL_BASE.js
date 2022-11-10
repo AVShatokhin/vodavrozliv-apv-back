@@ -58,5 +58,6 @@ module.exports = (config) => {
     insertFreeWaterStats: `INSERT INTO free_stat SET sn=?, FLAG_f_off=?, f=?`,
     updateDelta: `UPDATE delta SET nal=nal+?, eq=eq+?, tSOLD=tSOLD+?, w=w+? WHERE date=? and sn=?`,
     insertDelta: `INSERT INTO delta SET nal=?, eq=?, tSOLD=?, w=?, date=?, sn=?`,
+    updateInkasLts: `UPDATE apv SET inkassLts=now() WHERE sn=?`,
   };
 };

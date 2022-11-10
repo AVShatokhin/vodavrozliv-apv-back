@@ -123,9 +123,22 @@ let appendInkas = async (req, data) => {
       data.op_state,
     ])
     .then(
-      (result) => {},
+      (result) => {
+        updateApv(req, data);
+      },
       (err) => {
         console.log(req.timeLogFormated + ": appendInkas: " + err);
+      }
+    );
+};
+
+let updateApv = (req, data) => {
+  req.mysqlConnection
+    .asyncQuery(req.mysqlConnection.SQL_BASE.updateInkasLts, [data.sn])
+    .then(
+      (result) => {},
+      (err) => {
+        console.log(req.timeLogFormated + ": updateInkasLts: " + err);
       }
     );
 };
