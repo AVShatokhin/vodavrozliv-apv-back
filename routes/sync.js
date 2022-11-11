@@ -53,7 +53,6 @@ router.post("/sync", async function (req, res, next) {
 let calcDelta = async (req, newData) => {
   let FROM_SECONDS = (seconds) => {
     let __date = new Date();
-    console.log(__date);
     __date.setTime(seconds * 1000);
     return `${1900 + __date.getYear()}-${
       1 + __date.getMonth() > 9
@@ -65,25 +64,25 @@ let calcDelta = async (req, newData) => {
   let __sn = newData.sn;
   let __oldData = req.apvStore[__sn];
 
-  let __oldEq = __oldData?.r || 0;
+  let __oldEq = Number(__oldData?.r || 0);
   let __oldNal =
     Number(__oldData?.k || 0) +
     Number(__oldData?.m1 || 0) +
     2 * (__oldData?.m2 || 0) +
     5 * (__oldData?.m5 || 0) +
     10 * (__oldData?.m10 || 0);
-  let __oldTSOLD = __oldData?.tSOLD || 0;
-  let __oldW = __oldData?.w || 0;
+  let __oldTSOLD = Number(__oldData?.tSOLD || 0);
+  let __oldW = Number(__oldData?.w || 0);
 
-  let __newEq = newData?.r || 0;
+  let __newEq = Number(newData?.r || 0);
   let __newNal =
     Number(newData?.k || 0) +
     Number(newData?.m1 || 0) +
     2 * (newData?.m2 || 0) +
     5 * (newData?.m5 || 0) +
     10 * (newData?.m10 || 0);
-  let __newTSOLD = newData?.tSOLD || 0;
-  let __newW = newData?.w || 0;
+  let __newTSOLD = Number(newData?.tSOLD || 0);
+  let __newW = Number(newData?.w || 0);
 
   let __deltaEq = __oldEq <= __newEq ? __newEq - __oldEq : __newEq;
   let __deltaNal = __oldNal <= __newNal ? __newNal - __oldNal : __newNal;
@@ -97,10 +96,6 @@ let calcDelta = async (req, newData) => {
     (__deltaTSOLD > 0) |
     (__deltaW > 0)
   ) {
-    // console.log("deltaEq = " + __deltaEq);
-    // console.log("deltaNal = " + __deltaNal);
-    // console.log("deltaTSOLD = " + __deltaTSOLD);
-    // console.log("deltaW = " + __deltaW);
     let __date = FROM_SECONDS(new Date().getTime() / 1000);
 
     if (
@@ -115,7 +110,6 @@ let calcDelta = async (req, newData) => {
         ])
         .then(
           (result) => {
-            // console.log(result);
             return result.affectedRows == 0;
           },
           (err) => {
