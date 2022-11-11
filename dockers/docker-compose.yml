@@ -1,0 +1,51 @@
+version: "3"
+services:
+    apv-back:
+        image: node:14.16.1
+        container_name: apv-back-dc
+        ports:
+            - "3000:3000"
+        command: node /home/webmaster/vodavrozliv-apv-back/bin/www
+        volumes:
+            - /home/webmaster/vodavrozliv-apv-back:/home/webmaster/vodavrozliv-apv-back
+        restart: always
+        links:
+            - apv-db-dc
+        environment:
+            - TZ=Europe/Moscow
+    apv-db-dc:
+        image: mariadb:10
+        container_name: apv-db-dc
+        ports:
+            - "3306:3306"
+        volumes:
+            - /home/webmaster/db/:/var/lib/mysql 
+            - /home/webmaster/db-etc/:/etc/mysql/conf.d 
+        environment:
+            - TZ=Europe/Moscow 
+            - MYSQL_ROOT_PASSWORD=apvMysqlPassword
+        restart: always
+    phpMyAdmin:
+        image: phpmyadmin
+        container_name: apv-phpmyadmin-dc
+        ports:
+            - "8080:80"
+        environment:
+            - MYSQL_ROOT_PASSWORD=apvMysqlPassword 
+            - PMA_HOST=apv-db-dc
+        links:
+            - apv-db-dc
+        restart: always
+    apv:
+        image: node:14.16.1
+        container_name: apv-dc
+        ports:
+            - "80:3000"
+        volumes:
+            - /home/webmaster/vodavrozliv:/home/webmaster/vodavrozliv
+        command: node /home/webmaster/vodavrozliv/bin/www
+        environment:
+            - TZ=Europe/Moscow
+        links:
+            - apv-db-dc
+        restart: always
