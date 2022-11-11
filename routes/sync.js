@@ -53,6 +53,7 @@ router.post("/sync", async function (req, res, next) {
 let calcDelta = async (req, newData) => {
   let FROM_SECONDS = (seconds) => {
     let __date = new Date();
+    console.log(__date);
     __date.setTime(seconds * 1000);
     return `${1900 + __date.getYear()}-${
       1 + __date.getMonth() > 9
