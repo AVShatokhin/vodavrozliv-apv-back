@@ -65,22 +65,12 @@ let calcDelta = async (req, newData) => {
   let __oldData = req.apvStore[__sn];
 
   let __oldEq = Number(__oldData?.r || 0);
-  let __oldNal =
-    Number(__oldData?.k || 0) +
-    Number(__oldData?.m1 || 0) +
-    2 * (__oldData?.m2 || 0) +
-    5 * (__oldData?.m5 || 0) +
-    10 * (__oldData?.m10 || 0);
+  let __oldNal = Number(__oldData?.k || 0) + Number(__oldData?.m || 0);
   let __oldTSOLD = Number(__oldData?.tSOLD || 0);
   let __oldW = Number(__oldData?.w || 0);
 
   let __newEq = Number(newData?.r || 0);
-  let __newNal =
-    Number(newData?.k || 0) +
-    Number(newData?.m1 || 0) +
-    2 * (newData?.m2 || 0) +
-    5 * (newData?.m5 || 0) +
-    10 * (newData?.m10 || 0);
+  let __newNal = Number(newData?.k || 0) + Number(newData?.m || 0);
   let __newTSOLD = Number(newData?.tSOLD || 0);
   let __newW = Number(newData?.w || 0);
 
