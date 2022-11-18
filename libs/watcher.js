@@ -106,7 +106,9 @@ let apvResend = async function (
     .asyncQuery(
       mysqlConnection.SQL_BASE.getKVSbySN(
         Object.keys(configControl.apv).filter((sn) => {
-          return configControl.apv[sn].tgLink != "";
+          return (
+            configControl.apv[sn].tgLink != "" && configControl.apv[sn].online
+          );
         })
       ),
       []

@@ -65,23 +65,28 @@ let calcDelta = async (req, newData) => {
   let __oldData = req.apvStore[__sn];
 
   let __oldEq = Number(__oldData?.r || 0);
-  let __oldNal = Number(__oldData?.k || 0) + Number(__oldData?.m || 0);
+  let __oldNal = Number(__oldData?.k || 0);
+  let __oldM = Number(__oldData?.m || 0);
   let __oldTSOLD = Number(__oldData?.tSOLD || 0);
   let __oldW = Number(__oldData?.w || 0);
 
   let __newEq = Number(newData?.r || 0);
-  let __newNal = Number(newData?.k || 0) + Number(newData?.m || 0);
+  let __newNal = Number(newData?.k || 0);
+  let __newM = Number(newData?.m || 0);
   let __newTSOLD = Number(newData?.tSOLD || 0);
   let __newW = Number(newData?.w || 0);
 
   let __deltaEq = __oldEq <= __newEq ? __newEq - __oldEq : __newEq;
   let __deltaNal = __oldNal <= __newNal ? __newNal - __oldNal : __newNal;
+  let __deltaM = __oldM <= __newM ? __newM - __oldM : 0;
+
   let __deltaTSOLD =
     __oldTSOLD <= __newTSOLD ? __newTSOLD - __oldTSOLD : __newTSOLD;
   let __deltaW = __oldW <= __newW ? __newW - __oldW : __newW;
 
   if (
     (__deltaEq > 0) |
+    (__deltaM > 0) |
     (__deltaNal > 0) |
     (__deltaTSOLD > 0) |
     (__deltaW > 0)
@@ -91,7 +96,7 @@ let calcDelta = async (req, newData) => {
     if (
       await req.mysqlConnection
         .asyncQuery(req.mysqlConnection.SQL_BASE.updateDelta, [
-          __deltaNal,
+          Number(__deltaNal) + Number(__deltaM),
           __deltaEq,
           __deltaTSOLD,
           __deltaW,
@@ -109,7 +114,7 @@ let calcDelta = async (req, newData) => {
     ) {
       req.mysqlConnection
         .asyncQuery(req.mysqlConnection.SQL_BASE.insertDelta, [
-          __deltaNal,
+          Number(__deltaNal) + Number(__deltaM),
           __deltaEq,
           __deltaTSOLD,
           __deltaW,
