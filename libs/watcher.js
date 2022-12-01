@@ -51,7 +51,7 @@ let recurcyMain = (i, dataToSend, bot, configControl) => {
     let e = dataToSend[i];
     bot.telegram
       .sendMessage(
-        `@${configControl.apv[e.sn].tgLink}`,
+        `${configControl.apv[e.sn].tgLink}`,
         message(e, configControl)
       )
       .then(() => {
@@ -131,7 +131,7 @@ let recurcyOffline = (i, offlineSn, bot, configControl) => {
     let sn = offlineSn[i];
     bot.telegram
       .sendMessage(
-        `@${configControl.apv[sn].tgLink}`,
+        `${configControl.apv[sn].tgLink}`,
         `${sn} : Напоминание : Всё ещё нет связи с АПВ`
       )
       .then(() => {

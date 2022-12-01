@@ -146,7 +146,7 @@ module.exports = (config, configControl) => {
       if (__tgLink && configControl.errors[config.sync_onlineCode]?.isActive) {
         try {
           bot.telegram.sendMessage(
-            `@${__tgLink}`,
+            `${__tgLink}`,
             `${sn} : Сообщение : Появилась связь`
           );
         } catch (err) {

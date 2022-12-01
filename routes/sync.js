@@ -473,7 +473,7 @@ let checkForMessages = async (req, data) => {
     if (messages?.[messCode]?.isActive) {
       try {
         await req.telegram.sendMessage(
-          `@${apvConfig.tgLink}`,
+          `${apvConfig.tgLink}`,
           `${apvConfig.sn} : Сообщение : "${messages[messCode].messText}"`
         );
       } catch (e) {
@@ -491,7 +491,7 @@ let checkForMessages = async (req, data) => {
   if (errors?.[data?.errorCode]?.isActive) {
     try {
       await req.telegram.sendMessage(
-        `@${apvConfig.tgLink}`,
+        `${apvConfig.tgLink}`,
         `${apvConfig.sn} : Ошибка : "${
           errors[data.errorCode].errorText
         }" в устройстве : "${devices[data.errorDevice].deviceName}"`
