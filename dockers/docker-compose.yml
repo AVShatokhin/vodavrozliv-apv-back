@@ -14,7 +14,7 @@ services:
         environment:
             - TZ=Europe/Moscow
     apv-db-dc:
-        image: mariadb:10
+        image: mariadb:10.3
         container_name: apv-db-dc
         ports:
             - "3306:3306"
