@@ -471,6 +471,27 @@ let checkForMessages = async (req, data) => {
   let errors = req?.configControl?.errors;
 
   data.messCode.forEach(async (messCode) => {
+    if (messCode == 25) {
+      // console.log(message(data, req?.configControl));
+
+      try {
+        await req.telegram.sendMessage(
+          `${apvConfig.tgLink}`,
+          `${apvConfig.sn} : Сводка\n` + message(data, req?.configControl)
+        );
+      } catch (e) {
+        console.log(
+          req.timeLogFormated +
+            ": checkForMessages: TELEGRAM_ERROR: " +
+            apvConfig.sn +
+            " : " +
+            e?.response?.description
+        );
+      }
+
+      return;
+    }
+
     if (messages?.[messCode]?.isActive) {
       try {
         await req.telegram.sendMessage(
@@ -590,6 +611,47 @@ let freeWaterStats = async (req, data) => {
       insertFreeWaterStats(req, { sn, FLAG_f_off: false, f: 0 });
     }
   }
+};
+
+let message = (data, configControl) => {
+  let onof = (bool) => {
+    return bool ? "ON" : "OFF";
+  };
+
+  let errok = (bool) => {
+    return bool ? "ERROR" : "OK";
+  };
+  let __messages = configControl?.messages;
+  let __devices = configControl?.devices;
+  let __errors = configControl?.errors;
+
+  //let data = JSON.parse(e.data);
+  let messages = [];
+
+  data.messCode.forEach((mc) => {
+    messages.push(__messages?.[mc]?.messText || "Неизвестное сообщение");
+  });
+
+  //return `${e.sn}: Сводка
+  return `Версия: ${data.version};
+  Продал: ${data.w} л.;
+  Купюрник: ${data.k} [${onof(!data.FLAG_k_off)}];
+  Монетник: ${data.m} [${onof(!data.FLAG_m_off)}];
+  Безнал: ${data.r} [${onof(!data.FLAG_r_off)}];
+  Тубы: 1:${data.m1}:[${errok(data.FLAG_error_m1)}], 2:${data.m2}:[${errok(
+    data.FLAG_error_m2
+  )}], 5:${data.m5}:[${errok(data.FLAG_error_m5)}], 10:${data.m10}:[${errok(
+    data.FLAG_error_m10
+  )}];
+  Температура: ${data.c} °C [${onof(!data.FLAG_c_off)}];
+  Ошибка: ${
+    __devices?.[data.errorDevice]?.deviceName || "Неизвестное устройство"
+  }:${__errors?.[data.errorCode]?.errorText || "Неизвестная ошибка"};
+  Сообщения: ${messages.join(", ")};
+  V: ${data.v1},${data.v2},${data.v3},${data.v4};
+  Dv: ${data.dv1},${data.dv2},${data.dv3},${data.dv4},${data.dv5};
+  Бесплатная раздача: ${data.f} л. [${onof(data.FLAG_f_off)}];
+  Тара: ${data.tSOLD}/${data.tREMAIN} [${onof(!data.FLAG_t_off)}];`;
 };
 
 module.exports = router;
