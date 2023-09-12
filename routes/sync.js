@@ -40,7 +40,7 @@ router.post("/sync", async function (req, res, next) {
   onlineController(result?.main_data?.sn);
 
   if (isNewData) {
-    appendMain(req, result?.main_data);
+    appendMain(req, result?.main_data, req.test);
   }
 
   updateApv(req, result?.apv_data);
@@ -393,7 +393,7 @@ let syncParser = (income) => {
   return result;
 };
 
-let appendMain = async (req, data) => {
+let appendMain = async (req, data, icomeRawData) => {
   await req.mysqlConnection
     .asyncQuery(req.mysqlConnection.SQL_BASE.appendMain, [
       data.sn,
@@ -438,6 +438,7 @@ let appendMain = async (req, data) => {
       (result) => {},
       (err) => {
         console.log(req.timeLogFormated + ": appendMain: " + err);
+        console.log(req.timeLogFormated + ": appendMain: " + icomeRawData);
       }
     );
 };

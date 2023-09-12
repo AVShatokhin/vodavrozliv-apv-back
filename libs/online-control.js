@@ -77,7 +77,7 @@ module.exports = (config, configControl) => {
         ) {
           try {
             bot.telegram.sendMessage(
-              `@${e.tgLink}`,
+              `${e.tgLink}`,
               `${e.sn} : Сообщение : Пропала связь`
             );
           } catch (err) {
