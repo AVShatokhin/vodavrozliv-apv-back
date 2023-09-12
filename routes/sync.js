@@ -471,6 +471,9 @@ let checkForMessages = async (req, data) => {
   let errors = req?.configControl?.errors;
 
   data.messCode.forEach(async (messCode) => {
+    // при получении кода 25 отправляем все полученные данные в качестве сводки в телегу
+    // аналогичная функциональность есть в модуле watcher.js - там отправка осуществляется периодически
+
     if (messCode == 25) {
       // console.log(message(data, req?.configControl));
 
