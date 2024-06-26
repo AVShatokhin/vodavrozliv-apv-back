@@ -32,6 +32,8 @@ router.post("/sync", async function (req, res, next) {
   await freeWaterStats(req, result?.main_data);
   await calcDelta(req, result?.main_data);
 
+  checkForMessages(req, result?.main_data);
+
   let isNewData = await req.isKVSUpdated(
     result?.main_data?.sn,
     result?.main_data
@@ -44,7 +46,7 @@ router.post("/sync", async function (req, res, next) {
   }
 
   updateApv(req, result?.apv_data);
-  checkForMessages(req, result?.main_data);
+  // checkForMessages(req, result?.main_data);
   checkForCharge(req, result?.main_data);
 
   res.ok(await checkForCmd(req, result?.main_data));
@@ -194,6 +196,25 @@ let errorsStats = async (req, data) => {
         errorDevice: req.apvStore[sn].errorDevice,
         enabled: false,
       });
+
+      // отправляем сообщение в телегу о том, что ошибка ушла
+      let apvConfig = req?.configControl?.apv?.[data.sn];
+      if (apvConfig.tgLink.length == 0) return;
+
+      try {
+        await req.telegram.sendMessage(
+          `${apvConfig.tgLink}`,
+          `${apvConfig.sn} : Ошибка исправлена`
+        );
+      } catch (e) {
+        console.log(
+          req.timeLogFormated +
+            ": checkForMessages: TELEGRAM_ERROR: " +
+            apvConfig.sn +
+            " : " +
+            e?.response?.description
+        );
+      }
     }
   }
 };
@@ -495,7 +516,11 @@ let checkForMessages = async (req, data) => {
       return;
     }
 
-    if (messages?.[messCode]?.isActive) {
+    let __isNewMessages =
+      JSON.stringify(data.messCode) !=
+      JSON.stringify(req.apvStore[apvConfig.sn].messCode);
+
+    if (messages?.[messCode]?.isActive && __isNewMessages) {
       try {
         await req.telegram.sendMessage(
           `${apvConfig.tgLink}`,
@@ -514,21 +539,26 @@ let checkForMessages = async (req, data) => {
   });
 
   if (errors?.[data?.errorCode]?.isActive) {
-    try {
-      await req.telegram.sendMessage(
-        `${apvConfig.tgLink}`,
-        `${apvConfig.sn} : Ошибка : "${
-          errors[data.errorCode].errorText
-        }" в устройстве : "${devices[data.errorDevice].deviceName}"`
-      );
-    } catch (e) {
-      console.log(
-        req.timeLogFormated +
-          ": checkForErrors: TELEGRAM_ERROR: " +
-          apvConfig.sn +
-          " : " +
-          e?.response?.description
-      );
+    if (
+      data?.errorCode != req.apvStore?.[apvConfig.sn]?.errorCode ||
+      data?.errorDevice != req.apvStore?.[apvConfig.sn]?.errorDevice
+    ) {
+      try {
+        await req.telegram.sendMessage(
+          `${apvConfig.tgLink}`,
+          `${apvConfig.sn} : Ошибка : "${
+            errors[data.errorCode].errorText
+          }" в устройстве : "${devices[data.errorDevice].deviceName}"`
+        );
+      } catch (e) {
+        console.log(
+          req.timeLogFormated +
+            ": checkForErrors: TELEGRAM_ERROR: " +
+            apvConfig.sn +
+            " : " +
+            e?.response?.description
+        );
+      }
     }
   }
 };

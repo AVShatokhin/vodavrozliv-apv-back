@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
+// это отладка
 router.post("/", function (req, res, next) {
   if (req.text) {
     res.send("MESSAGE=" + req.text);

@@ -66,8 +66,8 @@ app.use(syncRouter);
 app.use(asyncRouter);
 app.use(replyRouter);
 
-app.use("/in", inRouter); // удалить
-app.use("/log", logRouter); // удалить
+// app.use("/in", inRouter); // удалить
+// app.use("/log", logRouter); // удалить
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

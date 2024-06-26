@@ -9,6 +9,8 @@ router.setOnlineController = (callback) => {
   onlineController = callback;
 };
 
+// отладка
+
 router.post("/sync_old", async function (req, res, next) {
   if (req?.text == undefined) {
     res.error(ERRORS.NO_DATA, "sync");

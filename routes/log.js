@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 
 /* GET users listing. */
-
+// это отладка
 router.get("/", function (req, res, next) {
   let norm = (input) => {
     return input > 10 ? input : "0" + input;
