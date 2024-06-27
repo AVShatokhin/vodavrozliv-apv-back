@@ -26,7 +26,7 @@ router.post("/sync", async function (req, res, next) {
     return;
   }
 
-  console.log(result.main_data.sn);
+  // console.log(result.main_data.sn);
 
   await req.LoadKVS(result.main_data.sn);
 
@@ -34,7 +34,7 @@ router.post("/sync", async function (req, res, next) {
   await freeWaterStats(req, result?.main_data);
   await calcDelta(req, result?.main_data);
 
-  checkForMessages(req, result?.main_data);
+  // checkForMessages(req, result?.main_data);
 
   let isNewData = await req.isKVSUpdated(
     result?.main_data?.sn,
@@ -48,7 +48,7 @@ router.post("/sync", async function (req, res, next) {
   }
 
   updateApv(req, result?.apv_data);
-  // checkForMessages(req, result?.main_data);
+  checkForMessages(req, result?.main_data);
   checkForCharge(req, result?.main_data);
 
   res.ok(await checkForCmd(req, result?.main_data));
@@ -518,9 +518,11 @@ let checkForMessages = async (req, data) => {
       return;
     }
 
-    let __isNewMessages =
-      JSON.stringify(data.messCode) !=
-      JSON.stringify(req.apvStore[apvConfig.sn].messCode);
+    // let __isNewMessages =
+    //   JSON.stringify(data.messCode) !=
+    //   JSON.stringify(req.apvStore[apvConfig.sn].messCode);
+    let __isNewMessages = true;
+    // то им нужно чтоб только новые сообщения приходили, то не нужно и пусть типа дублируются без остановки, оставляю так
 
     if (messages?.[messCode]?.isActive && __isNewMessages) {
       try {
@@ -541,28 +543,30 @@ let checkForMessages = async (req, data) => {
   });
 
   if (errors?.[data?.errorCode]?.isActive) {
-    if (
-      data?.errorCode != req.apvStore?.[apvConfig.sn]?.errorCode ||
-      data?.errorDevice != req.apvStore?.[apvConfig.sn]?.errorDevice
-    ) {
-      try {
-        await req.telegram.sendMessage(
-          `${apvConfig.tgLink}`,
-          `${apvConfig.sn} : Ошибка : "${
-            errors[data.errorCode].errorText
-          }" в устройстве : "${devices[data.errorDevice].deviceName}"`
-        );
-      } catch (e) {
-        console.log(
-          req.timeLogFormated +
-            ": checkForErrors: TELEGRAM_ERROR: " +
-            apvConfig.sn +
-            " : " +
-            e?.response?.description
-        );
-      }
+    // if (
+    //   data?.errorCode != req.apvStore?.[apvConfig.sn]?.errorCode ||
+    //   data?.errorDevice != req.apvStore?.[apvConfig.sn]?.errorDevice
+    // ) {
+    // то им нужно чтоб только новые сообщения приходили, то не нужно и пусть типа дублируются без остановки, оставляю так
+
+    try {
+      await req.telegram.sendMessage(
+        `${apvConfig.tgLink}`,
+        `${apvConfig.sn} : Ошибка : "${
+          errors[data.errorCode].errorText
+        }" в устройстве : "${devices[data.errorDevice].deviceName}"`
+      );
+    } catch (e) {
+      console.log(
+        req.timeLogFormated +
+          ": checkForErrors: TELEGRAM_ERROR: " +
+          apvConfig.sn +
+          " : " +
+          e?.response?.description
+      );
     }
   }
+  // }
 };
 
 let checkForCmd = async (req, data) => {
