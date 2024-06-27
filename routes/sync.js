@@ -26,7 +26,7 @@ router.post("/sync", async function (req, res, next) {
     return;
   }
 
-  console.log(JSON.stringify(result));
+  console.log(result.sn);
 
   await req.LoadKVS(result.main_data.sn);
 
