@@ -71,6 +71,31 @@ module.exports = (config, configControl) => {
             }
           );
 
+        // записываем в журнал диспетчера
+        mysqlConnection
+          .asyncQuery(mysqlConnection.SQL_BASE.appendDispMain, [
+            e.sn,
+            0,
+            0,
+            0,
+            0,
+            0,
+            "{}",
+            0,
+            0,
+            0,
+            0,
+            0,
+            config.sync_LinkDevice,
+            config.sync_offlineCode,
+          ])
+          .then(
+            (result) => {},
+            (err) => {
+              console.log("onlineControl : dispatcher: " + err);
+            }
+          );
+
         if (
           e?.tgLink &&
           configControl.errors[config.sync_offlineCode]?.isActive
@@ -139,6 +164,31 @@ module.exports = (config, configControl) => {
           (result) => {},
           (err) => {
             console.log("onlineControl: " + err);
+          }
+        );
+
+      // записываем в журнал диспетчера
+      mysqlConnection
+        .asyncQuery(mysqlConnection.SQL_BASE.appendDispMain, [
+          sn,
+          0,
+          0,
+          0,
+          0,
+          0,
+          "{}",
+          0,
+          0,
+          0,
+          0,
+          0,
+          config.sync_LinkDevice,
+          config.sync_onlineCode,
+        ])
+        .then(
+          (result) => {},
+          (err) => {
+            console.log("onlineControl : dispatcher: " + err);
           }
         );
 
