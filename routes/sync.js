@@ -36,14 +36,14 @@ router.post("/sync", async function (req, res, next) {
 
   // checkForMessages(req, result?.main_data);
 
-  let isNewData = await req.isKVSUpdated(
+  let newsDataFlags = await req.isKVSUpdated(
     result?.main_data?.sn,
     result?.main_data
   );
 
   onlineController(result?.main_data?.sn);
 
-  if (isNewData) {
+  if (newsDataFlags.isNewData) {
     appendMain(req, result?.main_data, req.test);
   }
 

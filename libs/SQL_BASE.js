@@ -59,5 +59,6 @@ module.exports = (config) => {
     updateDelta: `UPDATE delta SET nal=nal+?, eq=eq+?, tSOLD=tSOLD+?, w=w+? WHERE date=? and sn=?`,
     insertDelta: `INSERT INTO delta SET nal=?, eq=?, tSOLD=?, w=?, date=?, sn=?`,
     updateInkasLts: `UPDATE apv SET inkassLts=now() WHERE sn=?`,
+    appendDispMain: `INSERT INTO main_disp SET lts=now(), sn=?, w=?, v1=?, v2=?, v3=?, v4=?, chargeObject=?, dv1=?, dv2=?, dv3=?, dv4=?, dv5=?, errorDevice=?, errorCode=?`,
   };
 };
