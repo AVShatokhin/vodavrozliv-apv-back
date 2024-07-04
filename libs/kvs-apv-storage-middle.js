@@ -52,6 +52,8 @@ module.exports = () => {
         data.dv3 != __store.dv3 ||
         data.dv4 != __store.dv4 ||
         data.v4 != __store.v4 ||
+        data.v2 != __store.v2 ||
+        data.v1 != __store.v1 ||
         ((data.errorCode != __store.errorCode ||
           data.errorDevice != __store.errorDevice) &&
           (data.errorCode == 3 ||
